@@ -12,14 +12,14 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class PaketJasaSpecifications {
+public final class ServicePackageSpecifications {
 
-    private PaketJasaSpecifications() {
+    private ServicePackageSpecifications() {
     }
 
-    public static Specification<PaketJasa> buildBaseSpecification(
+    public static Specification<ServicePackage> buildBaseSpecification(
             String keyword,
-            List<Long> kategoriIds,
+            List<Long> categoryIds,
             BigDecimal hargaMin,
             BigDecimal hargaMax
     ) {
@@ -30,38 +30,38 @@ public final class PaketJasaSpecifications {
             predicates.add(cb.isTrue(root.get("active")));
 
             // 2. Freelancer user aktif
-            Join<PaketJasa, FreelancerProfile> freelancerJoin = root.join("freelancerProfile", JoinType.INNER);
+            Join<ServicePackage, FreelancerProfile> freelancerJoin = root.join("freelancerProfile", JoinType.INNER);
             Join<FreelancerProfile, User> userJoin = freelancerJoin.join("user", JoinType.INNER);
             predicates.add(cb.isTrue(userJoin.get("active")));
 
-            // 3. Keyword pada judul dan deskripsi (tidak peka huruf besar/kecil)
+            // 3. Keyword pada title dan description (case-insensitive)
             if (StringUtils.hasText(keyword)) {
                 String pattern = "%" + keyword.trim().toLowerCase() + "%";
-                Predicate judulLike = cb.like(cb.lower(root.get("judul")), pattern);
-                Predicate deskripsiLike = cb.like(cb.lower(root.get("deskripsi")), pattern);
-                predicates.add(cb.or(judulLike, deskripsiLike));
+                Predicate titleLike = cb.like(cb.lower(root.get("title")), pattern);
+                Predicate descLike = cb.like(cb.lower(root.get("description")), pattern);
+                predicates.add(cb.or(titleLike, descLike));
             }
 
             // 4. Filter Kategori (mencakup parent dan sub-kategori)
-            if (kategoriIds != null && !kategoriIds.isEmpty()) {
-                predicates.add(root.get("kategori").get("id").in(kategoriIds));
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                predicates.add(root.get("category").get("id").in(categoryIds));
             }
 
-            // 5. Filter Rentang Harga
+            // 5. Filter Rentang Harga (base_price)
             if (hargaMin != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("hargaMulai"), hargaMin));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("basePrice"), hargaMin));
             }
             if (hargaMax != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("hargaMulai"), hargaMax));
+                predicates.add(cb.lessThanOrEqualTo(root.get("basePrice"), hargaMax));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
-    public static Specification<PaketJasa> isNewFreelancerPool(boolean isNew) {
+    public static Specification<ServicePackage> isNewFreelancerPool(boolean isNew) {
         return (root, query, cb) -> {
-            Join<PaketJasa, FreelancerProfile> fp = root.join("freelancerProfile", JoinType.INNER);
+            Join<ServicePackage, FreelancerProfile> fp = root.join("freelancerProfile", JoinType.INNER);
 
             Predicate fullNameValid = cb.and(cb.isNotNull(fp.get("fullName")), cb.notEqual(cb.trim(fp.get("fullName")), ""));
             Predicate bioValid = cb.and(cb.isNotNull(fp.get("bio")), cb.notEqual(cb.trim(fp.get("bio")), ""));
@@ -74,3 +74,4 @@ public final class PaketJasaSpecifications {
         };
     }
 }
+

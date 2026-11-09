@@ -6,25 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "kategori_jasa")
-public class KategoriJasa {
+@Table(name = "service_categories")
+public class ServiceCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 100)
-    private String nama;
+    private String name;
 
     @Column(columnDefinition = "TEXT")
-    private String deskripsi;
+    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private KategoriJasa parent;
+    private ServiceCategory parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<KategoriJasa> subKategori = new ArrayList<>();
+    private List<ServiceCategory> subCategories = new ArrayList<>();
 
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
@@ -35,12 +35,12 @@ public class KategoriJasa {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    public KategoriJasa() {
+    public ServiceCategory() {
     }
 
-    public KategoriJasa(String nama, String deskripsi, KategoriJasa parent) {
-        this.nama = nama;
-        this.deskripsi = deskripsi;
+    public ServiceCategory(String name, String description, ServiceCategory parent) {
+        this.name = name;
+        this.description = description;
         this.parent = parent;
         this.active = true;
     }
@@ -53,36 +53,36 @@ public class KategoriJasa {
         this.id = id;
     }
 
-    public String getNama() {
-        return nama;
+    public String getName() {
+        return name;
     }
 
-    public void setNama(String nama) {
-        this.nama = nama;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getDeskripsi() {
-        return deskripsi;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDeskripsi(String deskripsi) {
-        this.deskripsi = deskripsi;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public KategoriJasa getParent() {
+    public ServiceCategory getParent() {
         return parent;
     }
 
-    public void setParent(KategoriJasa parent) {
+    public void setParent(ServiceCategory parent) {
         this.parent = parent;
     }
 
-    public List<KategoriJasa> getSubKategori() {
-        return subKategori;
+    public List<ServiceCategory> getSubCategories() {
+        return subCategories;
     }
 
-    public void setSubKategori(List<KategoriJasa> subKategori) {
-        this.subKategori = subKategori;
+    public void setSubCategories(List<ServiceCategory> subCategories) {
+        this.subCategories = subCategories;
     }
 
     public boolean isActive() {
@@ -101,3 +101,4 @@ public class KategoriJasa {
         return updatedAt;
     }
 }
+

@@ -6,3 +6,4 @@ public record FreelancerItemResponse(
         String avatarUrl
 ) {
 }
+

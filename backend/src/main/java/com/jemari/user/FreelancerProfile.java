@@ -130,3 +130,4 @@ public class FreelancerProfile {
         return updatedAt;
     }
 }
+

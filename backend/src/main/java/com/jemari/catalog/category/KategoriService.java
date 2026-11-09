@@ -4,7 +4,7 @@ import com.jemari.catalog.category.dto.CreateKategoriRequest;
 import com.jemari.catalog.category.dto.KategoriResponse;
 import com.jemari.catalog.category.dto.KategoriTreeNodeResponse;
 import com.jemari.catalog.category.dto.UpdateKategoriRequest;
-import com.jemari.catalog.listing.PaketJasaRepository;
+import com.jemari.catalog.listing.ServicePackageRepository;
 import com.jemari.common.exception.AppException;
 import com.jemari.common.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -17,40 +17,43 @@ import java.util.List;
 @Service
 public class KategoriService {
 
-    private final KategoriJasaRepository kategoriRepository;
-    private final PaketJasaRepository paketJasaRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
+    private final ServicePackageRepository servicePackageRepository;
 
-    public KategoriService(KategoriJasaRepository kategoriRepository, PaketJasaRepository paketJasaRepository) {
-        this.kategoriRepository = kategoriRepository;
-        this.paketJasaRepository = paketJasaRepository;
+    public KategoriService(
+            ServiceCategoryRepository serviceCategoryRepository,
+            ServicePackageRepository servicePackageRepository
+    ) {
+        this.serviceCategoryRepository = serviceCategoryRepository;
+        this.servicePackageRepository = servicePackageRepository;
     }
 
     @Transactional
     public KategoriResponse createKategori(CreateKategoriRequest request) {
         String nama = request.nama().trim();
-        KategoriJasa parent = null;
+        ServiceCategory parent = null;
 
         if (request.parentId() != null) {
-            parent = kategoriRepository.findById(request.parentId())
+            parent = serviceCategoryRepository.findById(request.parentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Kategori induk tidak ditemukan"));
 
-            if (kategoriRepository.existsByNamaIgnoreCaseAndParent(nama, parent)) {
+            if (serviceCategoryRepository.existsByNameIgnoreCaseAndParent(nama, parent)) {
                 throw new AppException("Nama sub-kategori '" + nama + "' sudah digunakan pada kategori induk ini", HttpStatus.CONFLICT);
             }
         } else {
-            if (kategoriRepository.existsByNamaIgnoreCaseAndParentIsNull(nama)) {
+            if (serviceCategoryRepository.existsByNameIgnoreCaseAndParentIsNull(nama)) {
                 throw new AppException("Nama kategori '" + nama + "' sudah digunakan", HttpStatus.CONFLICT);
             }
         }
 
-        KategoriJasa kategori = new KategoriJasa(nama, request.deskripsi(), parent);
-        KategoriJasa saved = kategoriRepository.save(kategori);
+        ServiceCategory kategori = new ServiceCategory(nama, request.deskripsi(), parent);
+        ServiceCategory saved = serviceCategoryRepository.save(kategori);
         return KategoriResponse.fromEntity(saved);
     }
 
     @Transactional(readOnly = true)
     public List<KategoriResponse> getAllKategori() {
-        return kategoriRepository.findAll()
+        return serviceCategoryRepository.findAll()
                 .stream()
                 .map(KategoriResponse::fromEntity)
                 .toList();
@@ -58,74 +61,74 @@ public class KategoriService {
 
     @Transactional(readOnly = true)
     public KategoriResponse getKategoriById(Long id) {
-        KategoriJasa kategori = kategoriRepository.findById(id)
+        ServiceCategory kategori = serviceCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori dengan ID " + id + " tidak ditemukan"));
         return KategoriResponse.fromEntity(kategori);
     }
 
     @Transactional
     public KategoriResponse updateKategori(Long id, UpdateKategoriRequest request) {
-        KategoriJasa kategori = kategoriRepository.findById(id)
+        ServiceCategory kategori = serviceCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori dengan ID " + id + " tidak ditemukan"));
 
         String nama = request.nama().trim();
-        KategoriJasa parent = null;
+        ServiceCategory parent = null;
 
         if (request.parentId() != null) {
             if (request.parentId().equals(id)) {
                 throw new AppException("Kategori tidak dapat menjadi sub-kategori dari dirinya sendiri", HttpStatus.BAD_REQUEST);
             }
-            parent = kategoriRepository.findById(request.parentId())
+            parent = serviceCategoryRepository.findById(request.parentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Kategori induk tidak ditemukan"));
 
-            if (kategoriRepository.existsByNamaIgnoreCaseAndParentAndIdNot(nama, parent, id)) {
+            if (serviceCategoryRepository.existsByNameIgnoreCaseAndParentAndIdNot(nama, parent, id)) {
                 throw new AppException("Nama sub-kategori '" + nama + "' sudah digunakan pada kategori induk ini", HttpStatus.CONFLICT);
             }
         } else {
-            if (kategoriRepository.existsByNamaIgnoreCaseAndParentIsNullAndIdNot(nama, id)) {
+            if (serviceCategoryRepository.existsByNameIgnoreCaseAndParentIsNullAndIdNot(nama, id)) {
                 throw new AppException("Nama kategori '" + nama + "' sudah digunakan", HttpStatus.CONFLICT);
             }
         }
 
-        kategori.setNama(nama);
-        kategori.setDeskripsi(request.deskripsi());
+        kategori.setName(nama);
+        kategori.setDescription(request.deskripsi());
         kategori.setParent(parent);
         if (request.active() != null) {
             kategori.setActive(request.active());
         }
 
-        KategoriJasa updated = kategoriRepository.save(kategori);
+        ServiceCategory updated = serviceCategoryRepository.save(kategori);
         return KategoriResponse.fromEntity(updated);
     }
 
     @Transactional
     public void deleteKategori(Long id) {
-        KategoriJasa kategori = kategoriRepository.findById(id)
+        ServiceCategory kategori = serviceCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori dengan ID " + id + " tidak ditemukan"));
 
-        if (kategoriRepository.existsByParentId(id)) {
+        if (serviceCategoryRepository.existsByParentId(id)) {
             throw new AppException("Kategori tidak dapat dihapus karena masih memiliki sub-kategori", HttpStatus.BAD_REQUEST);
         }
 
-        if (paketJasaRepository.existsByKategoriId(id)) {
+        if (servicePackageRepository.countByCategoryId(id) > 0) {
             throw new AppException("Kategori tidak dapat dihapus karena masih digunakan oleh paket jasa", HttpStatus.BAD_REQUEST);
         }
 
-        kategoriRepository.delete(kategori);
+        serviceCategoryRepository.delete(kategori);
     }
 
     @Transactional(readOnly = true)
     public List<KategoriTreeNodeResponse> getActiveKategoriTree() {
-        List<KategoriJasa> rootCategories = kategoriRepository.findAllByActiveTrueAndParentIsNull();
+        List<ServiceCategory> rootCategories = serviceCategoryRepository.findAllByActiveTrueAndParentIsNull();
         return rootCategories.stream()
                 .map(this::mapToTreeNode)
                 .toList();
     }
 
-    private KategoriTreeNodeResponse mapToTreeNode(KategoriJasa kategori) {
+    private KategoriTreeNodeResponse mapToTreeNode(ServiceCategory kategori) {
         List<KategoriTreeNodeResponse> subKategoriResponses = new ArrayList<>();
-        if (kategori.getSubKategori() != null) {
-            for (KategoriJasa sub : kategori.getSubKategori()) {
+        if (kategori.getSubCategories() != null) {
+            for (ServiceCategory sub : kategori.getSubCategories()) {
                 if (sub.isActive()) {
                     subKategoriResponses.add(mapToTreeNode(sub));
                 }
@@ -133,8 +136,8 @@ public class KategoriService {
         }
         return new KategoriTreeNodeResponse(
                 kategori.getId(),
-                kategori.getNama(),
-                kategori.getDeskripsi(),
+                kategori.getName(),
+                kategori.getDescription(),
                 subKategoriResponses
         );
     }

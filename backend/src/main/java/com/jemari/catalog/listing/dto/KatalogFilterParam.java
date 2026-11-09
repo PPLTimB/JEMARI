@@ -12,3 +12,4 @@ public record KatalogFilterParam(
         Integer size
 ) {
 }
+

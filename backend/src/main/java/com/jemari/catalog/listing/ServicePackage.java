@@ -1,14 +1,14 @@
 package com.jemari.catalog.listing;
 
-import com.jemari.catalog.category.KategoriJasa;
+import com.jemari.catalog.category.ServiceCategory;
 import com.jemari.user.FreelancerProfile;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "paket_jasa")
-public class PaketJasa {
+@Table(name = "service_packages")
+public class ServicePackage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,17 +19,17 @@ public class PaketJasa {
     private FreelancerProfile freelancerProfile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "kategori_id", nullable = false)
-    private KategoriJasa kategori;
+    @JoinColumn(name = "category_id", nullable = false)
+    private ServiceCategory category;
 
     @Column(nullable = false)
-    private String judul;
+    private String title;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String deskripsi;
+    private String description;
 
-    @Column(name = "harga_mulai", nullable = false, precision = 12, scale = 2)
-    private BigDecimal hargaMulai;
+    @Column(name = "base_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal basePrice;
 
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
@@ -37,18 +37,15 @@ public class PaketJasa {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
-    private LocalDateTime updatedAt;
-
-    public PaketJasa() {
+    public ServicePackage() {
     }
 
-    public PaketJasa(FreelancerProfile freelancerProfile, KategoriJasa kategori, String judul, String deskripsi, BigDecimal hargaMulai) {
+    public ServicePackage(FreelancerProfile freelancerProfile, ServiceCategory category, String title, String description, BigDecimal basePrice) {
         this.freelancerProfile = freelancerProfile;
-        this.kategori = kategori;
-        this.judul = judul;
-        this.deskripsi = deskripsi;
-        this.hargaMulai = hargaMulai;
+        this.category = category;
+        this.title = title;
+        this.description = description;
+        this.basePrice = basePrice;
         this.active = true;
     }
 
@@ -68,36 +65,36 @@ public class PaketJasa {
         this.freelancerProfile = freelancerProfile;
     }
 
-    public KategoriJasa getKategori() {
-        return kategori;
+    public ServiceCategory getCategory() {
+        return category;
     }
 
-    public void setKategori(KategoriJasa kategori) {
-        this.kategori = kategori;
+    public void setCategory(ServiceCategory category) {
+        this.category = category;
     }
 
-    public String getJudul() {
-        return judul;
+    public String getTitle() {
+        return title;
     }
 
-    public void setJudul(String judul) {
-        this.judul = judul;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public String getDeskripsi() {
-        return deskripsi;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDeskripsi(String deskripsi) {
-        this.deskripsi = deskripsi;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public BigDecimal getHargaMulai() {
-        return hargaMulai;
+    public BigDecimal getBasePrice() {
+        return basePrice;
     }
 
-    public void setHargaMulai(BigDecimal hargaMulai) {
-        this.hargaMulai = hargaMulai;
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
     }
 
     public boolean isActive() {
@@ -111,8 +108,5 @@ public class PaketJasa {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }
+

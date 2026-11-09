@@ -38,3 +38,4 @@ public class KatalogController {
         return ResponseEntity.ok(response);
     }
 }
+

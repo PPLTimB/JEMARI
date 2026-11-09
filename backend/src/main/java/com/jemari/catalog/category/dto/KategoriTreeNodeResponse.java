@@ -9,3 +9,4 @@ public record KategoriTreeNodeResponse(
         List<KategoriTreeNodeResponse> subKategori
 ) {
 }
+

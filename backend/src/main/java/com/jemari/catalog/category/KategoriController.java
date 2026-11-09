@@ -25,3 +25,4 @@ public class KategoriController {
         return ResponseEntity.ok(ApiResponse.ok("Pohon kategori aktif berhasil diambil", tree));
     }
 }
+

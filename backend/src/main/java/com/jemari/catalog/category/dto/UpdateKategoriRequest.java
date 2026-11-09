@@ -15,3 +15,4 @@ public record UpdateKategoriRequest(
         Boolean active
 ) {
 }
+

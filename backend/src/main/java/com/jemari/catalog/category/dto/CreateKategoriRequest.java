@@ -13,3 +13,4 @@ public record CreateKategoriRequest(
         Long parentId
 ) {
 }
+

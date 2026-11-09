@@ -1,6 +1,6 @@
 package com.jemari.catalog.category.dto;
 
-import com.jemari.catalog.category.KategoriJasa;
+import com.jemari.catalog.category.ServiceCategory;
 import java.time.LocalDateTime;
 
 public record KategoriResponse(
@@ -13,13 +13,13 @@ public record KategoriResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static KategoriResponse fromEntity(KategoriJasa entity) {
+    public static KategoriResponse fromEntity(ServiceCategory entity) {
         Long parentId = entity.getParent() != null ? entity.getParent().getId() : null;
-        String parentNama = entity.getParent() != null ? entity.getParent().getNama() : null;
+        String parentNama = entity.getParent() != null ? entity.getParent().getName() : null;
         return new KategoriResponse(
                 entity.getId(),
-                entity.getNama(),
-                entity.getDeskripsi(),
+                entity.getName(),
+                entity.getDescription(),
                 parentId,
                 parentNama,
                 entity.isActive(),

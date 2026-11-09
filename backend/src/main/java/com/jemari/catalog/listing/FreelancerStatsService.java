@@ -15,3 +15,4 @@ public interface FreelancerStatsService {
      */
     int getCompletedOrderCount(Long freelancerProfileId);
 }
+

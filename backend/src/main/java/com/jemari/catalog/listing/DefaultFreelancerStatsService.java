@@ -15,3 +15,4 @@ public class DefaultFreelancerStatsService implements FreelancerStatsService {
         return 0;
     }
 }
+

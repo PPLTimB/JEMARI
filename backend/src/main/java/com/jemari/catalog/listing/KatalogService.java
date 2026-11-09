@@ -1,7 +1,7 @@
 package com.jemari.catalog.listing;
 
-import com.jemari.catalog.category.KategoriJasa;
-import com.jemari.catalog.category.KategoriJasaRepository;
+import com.jemari.catalog.category.ServiceCategory;
+import com.jemari.catalog.category.ServiceCategoryRepository;
 import com.jemari.catalog.listing.dto.FreelancerItemResponse;
 import com.jemari.catalog.listing.dto.KatalogFilterParam;
 import com.jemari.catalog.listing.dto.KatalogPagedResponse;
@@ -32,17 +32,17 @@ public class KatalogService {
     public static final int MAX_SIZE = 50;
     public static final int NEW_FREELANCER_SLOT_INTERVAL = 5;
 
-    private final PaketJasaRepository paketJasaRepository;
-    private final KategoriJasaRepository kategoriRepository;
+    private final ServicePackageRepository servicePackageRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
     private final FreelancerStatsService freelancerStatsService;
 
     public KatalogService(
-            PaketJasaRepository paketJasaRepository,
-            KategoriJasaRepository kategoriRepository,
+            ServicePackageRepository servicePackageRepository,
+            ServiceCategoryRepository serviceCategoryRepository,
             FreelancerStatsService freelancerStatsService
     ) {
-        this.paketJasaRepository = paketJasaRepository;
-        this.kategoriRepository = kategoriRepository;
+        this.servicePackageRepository = servicePackageRepository;
+        this.serviceCategoryRepository = serviceCategoryRepository;
         this.freelancerStatsService = freelancerStatsService;
     }
 
@@ -56,14 +56,14 @@ public class KatalogService {
         // Ambil kategori beserta seluruh sub-kategorinya jika filter kategori diisi
         List<Long> categoryIds = collectCategoryIds(param.kategoriId());
 
-        Specification<PaketJasa> baseSpec = PaketJasaSpecifications.buildBaseSpecification(
+        Specification<ServicePackage> baseSpec = ServicePackageSpecifications.buildBaseSpecification(
                 param.keyword(),
                 categoryIds,
                 param.hargaMin(),
                 param.hargaMax()
         );
 
-        long totalElements = paketJasaRepository.count(baseSpec);
+        long totalElements = servicePackageRepository.count(baseSpec);
         int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
 
         if (totalElements == 0) {
@@ -88,18 +88,18 @@ public class KatalogService {
         }
         int targetRegularCount = size - targetNewCount;
 
-        Specification<PaketJasa> newPoolSpec = Specification.where(baseSpec)
-                .and(PaketJasaSpecifications.isNewFreelancerPool(true));
-        Specification<PaketJasa> regularPoolSpec = Specification.where(baseSpec)
-                .and(PaketJasaSpecifications.isNewFreelancerPool(false));
+        Specification<ServicePackage> newPoolSpec = Specification.where(baseSpec)
+                .and(ServicePackageSpecifications.isNewFreelancerPool(true));
+        Specification<ServicePackage> regularPoolSpec = Specification.where(baseSpec)
+                .and(ServicePackageSpecifications.isNewFreelancerPool(false));
 
-        Page<PaketJasa> newPage = paketJasaRepository.findAll(newPoolSpec, PageRequest.of(page, targetNewCount, sortOrder));
-        Page<PaketJasa> regularPage = paketJasaRepository.findAll(regularPoolSpec, PageRequest.of(page, targetRegularCount, sortOrder));
+        Page<ServicePackage> newPage = servicePackageRepository.findAll(newPoolSpec, PageRequest.of(page, targetNewCount, sortOrder));
+        Page<ServicePackage> regularPage = servicePackageRepository.findAll(regularPoolSpec, PageRequest.of(page, targetRegularCount, sortOrder));
 
-        List<PaketJasa> newItems = new ArrayList<>(newPage.getContent());
-        List<PaketJasa> regularItems = new ArrayList<>(regularPage.getContent());
+        List<ServicePackage> newItems = new ArrayList<>(newPage.getContent());
+        List<ServicePackage> regularItems = new ArrayList<>(regularPage.getContent());
 
-        List<PaketJasa> mergedItems = mergeWithFairness(newItems, regularItems, size);
+        List<ServicePackage> mergedItems = mergeWithFairness(newItems, regularItems, size);
 
         List<PaketJasaItemResponse> content = mergedItems.stream()
                 .map(this::mapToItemResponse)
@@ -135,21 +135,20 @@ public class KatalogService {
         }
     }
 
-    private List<Long> collectCategoryIds(Long kategoriId) {
-        if (kategoriId == null) {
+    private List<Long> collectCategoryIds(Long categoryId) {
+        if (categoryId == null) {
             return null;
         }
         List<Long> ids = new ArrayList<>();
-        ids.add(kategoriId);
+        ids.add(categoryId);
 
-        // Rekursif mengumpulkan sub-kategori aktif
-        collectSubCategoryIds(kategoriId, ids);
+        collectSubCategoryIds(categoryId, ids);
         return ids;
     }
 
     private void collectSubCategoryIds(Long parentId, List<Long> ids) {
-        List<KategoriJasa> subCategories = kategoriRepository.findAllByParentId(parentId);
-        for (KategoriJasa sub : subCategories) {
+        List<ServiceCategory> subCategories = serviceCategoryRepository.findAllByParentId(parentId);
+        for (ServiceCategory sub : subCategories) {
             if (sub.isActive()) {
                 ids.add(sub.getId());
                 collectSubCategoryIds(sub.getId(), ids);
@@ -159,18 +158,18 @@ public class KatalogService {
 
     private Sort determineSort(String sortParam) {
         if (!StringUtils.hasText(sortParam)) {
-            // Default: gabungan terbaru dan id untuk menjaga konsistensi urutan
+            // Default: terbaru berdasarkan createdAt lalu id
             return Sort.by(Sort.Direction.DESC, "createdAt")
                     .and(Sort.by(Sort.Direction.DESC, "id"));
         }
 
         String sortLower = sortParam.trim().toLowerCase();
         if ("harga_asc".equals(sortLower)) {
-            return Sort.by(Sort.Direction.ASC, "hargaMulai")
+            return Sort.by(Sort.Direction.ASC, "basePrice")
                     .and(Sort.by(Sort.Direction.DESC, "createdAt"))
                     .and(Sort.by(Sort.Direction.DESC, "id"));
         } else if ("harga_desc".equals(sortLower)) {
-            return Sort.by(Sort.Direction.DESC, "hargaMulai")
+            return Sort.by(Sort.Direction.DESC, "basePrice")
                     .and(Sort.by(Sort.Direction.DESC, "createdAt"))
                     .and(Sort.by(Sort.Direction.DESC, "id"));
         }
@@ -179,8 +178,8 @@ public class KatalogService {
                 .and(Sort.by(Sort.Direction.DESC, "id"));
     }
 
-    private List<PaketJasa> mergeWithFairness(List<PaketJasa> newItems, List<PaketJasa> regularItems, int targetSize) {
-        List<PaketJasa> merged = new ArrayList<>();
+    private List<ServicePackage> mergeWithFairness(List<ServicePackage> newItems, List<ServicePackage> regularItems, int targetSize) {
+        List<ServicePackage> merged = new ArrayList<>();
         int newIdx = 0;
         int regIdx = 0;
 
@@ -205,8 +204,8 @@ public class KatalogService {
         return merged;
     }
 
-    private PaketJasaItemResponse mapToItemResponse(PaketJasa paket) {
-        FreelancerProfile profile = paket.getFreelancerProfile();
+    private PaketJasaItemResponse mapToItemResponse(ServicePackage pkg) {
+        FreelancerProfile profile = pkg.getFreelancerProfile();
         boolean isBaru = isNewFreelancer(profile);
 
         FreelancerItemResponse freelancerResponse = new FreelancerItemResponse(
@@ -215,14 +214,14 @@ public class KatalogService {
                 profile != null ? profile.getAvatarUrl() : null
         );
 
-        String kategoriNama = paket.getKategori() != null ? paket.getKategori().getNama() : null;
+        String categoryName = pkg.getCategory() != null ? pkg.getCategory().getName() : null;
 
         return new PaketJasaItemResponse(
-                paket.getId(),
-                paket.getJudul(),
-                kategoriNama,
+                pkg.getId(),
+                pkg.getTitle(),
+                categoryName,
                 freelancerResponse,
-                paket.getHargaMulai(),
+                pkg.getBasePrice(),
                 isBaru
         );
     }

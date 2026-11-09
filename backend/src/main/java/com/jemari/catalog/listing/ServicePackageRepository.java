@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PaketJasaRepository extends JpaRepository<PaketJasa, Long>, JpaSpecificationExecutor<PaketJasa> {
+public interface ServicePackageRepository extends JpaRepository<ServicePackage, Long>, JpaSpecificationExecutor<ServicePackage> {
 
-    boolean existsByKategoriId(Long kategoriId);
+    boolean existsByCategoryId(Long categoryId);
+
+    long countByCategoryId(Long categoryId);
 }
+
