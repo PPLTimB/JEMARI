@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,21 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Validasi input gagal", errors));
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String fieldName = ex.getName();
+        String message = "Parameter '" + fieldName + "' harus berupa nilai angka yang valid";
+        List<ErrorDetail> errors = List.of(new ErrorDetail(fieldName, message));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Validasi input gagal", errors));
+    }
+
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
+        if (ex.getErrors() != null && !ex.getErrors().isEmpty()) {
+            return ResponseEntity.status(ex.getStatus())
+                    .body(ApiResponse.error(ex.getMessage(), ex.getErrors()));
+        }
         return ResponseEntity.status(ex.getStatus())
                 .body(ApiResponse.error(ex.getMessage()));
     }
