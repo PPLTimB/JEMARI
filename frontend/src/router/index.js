@@ -13,7 +13,13 @@ const router = createRouter({
       path: '/freelancer/service-packages',
       name: 'freelancer-service-packages',
       component: () => import('../views/freelancer/ServicePackagesView.vue')
-    }
+    },
+
+    {
+  path: '/register',
+  name: 'register',
+  component: () => import('../views/RegisterView.vue')
+}
   ]
 });
 
