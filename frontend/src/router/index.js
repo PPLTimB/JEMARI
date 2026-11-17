@@ -1,26 +1,31 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import FreelancerProfileView from '../views/FreelancerProfileView.vue'
+import ServicePackagesView from '../views/ServicePackagesView.vue'
+import RevisionTermsView from '../views/RevisionTermsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      redirect: '/freelancer/profile',
     },
     {
-      path: '/freelancer/service-packages',
-      name: 'freelancer-service-packages',
-      component: () => import('../views/freelancer/ServicePackagesView.vue')
+      path: '/freelancer/profile',
+      name: 'freelancer-profile',
+      component: FreelancerProfileView,
     },
-
     {
-  path: '/register',
-  name: 'register',
-  component: () => import('../views/RegisterView.vue')
-}
-  ]
-});
+      path: '/freelancer/packages',
+      name: 'freelancer-packages',
+      component: ServicePackagesView,
+    },
+    {
+      path: '/revision-terms',
+      name: 'revision-terms',
+      component: RevisionTermsView,
+    },
+  ],
+})
 
-export default router;
+export default router
