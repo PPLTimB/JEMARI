@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import FreelancerProfileView from '../views/FreelancerProfileView.vue'
-import ServicePackagesView from '../views/ServicePackagesView.vue'
+import ServicePackagesView from '../views/freelancer/ServicePackagesView.vue'
 import RevisionTermsView from '../views/RevisionTermsView.vue'
 
 const router = createRouter({

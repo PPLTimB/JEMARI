@@ -3,7 +3,10 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:8080/api/service-packages';
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+  const token =
+    localStorage.getItem('jemari_token') ||
+    localStorage.getItem('token') ||
+    localStorage.getItem('accessToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
