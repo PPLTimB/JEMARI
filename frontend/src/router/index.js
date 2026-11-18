@@ -6,6 +6,7 @@ import RequestDetail from '../views/RequestDetail.vue'
 import PortfolioCard from '../views/PortfolioCard.vue'
 import FreelancerProfileView from '../views/FreelancerProfileView.vue'
 import ServicePackagesView from '../views/freelancer/ServicePackagesView.vue'
+import PaidAddonsView from '../views/freelancer/PaidAddonsView.vue'
 import RevisionTermsView from '../views/RevisionTermsView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
@@ -56,6 +57,11 @@ const router = createRouter({
       path: '/freelancer/packages',
       name: 'freelancer-packages',
       component: ServicePackagesView,
+    },
+    {
+      path: '/freelancer/paid-addons',
+      name: 'freelancer-paid-addons',
+      component: PaidAddonsView,
     },
     {
       path: '/revision-terms',
