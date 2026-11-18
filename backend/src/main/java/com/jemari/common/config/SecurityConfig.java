@@ -1,6 +1,7 @@
 package com.jemari.common.config;
 
-import com.jemari.common.security.JwtAuthenticationFilter;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.jemari.common.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,12 +29,11 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Konstruktor manual agar tidak bentrok dengan Lombok Processor di IDE
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    @Bean
+     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/katalog/**").hasRole("UMKM")
                 .requestMatchers(HttpMethod.GET, "/api/kategori/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/service-packages").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
