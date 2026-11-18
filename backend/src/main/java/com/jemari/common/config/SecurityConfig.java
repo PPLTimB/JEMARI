@@ -42,7 +42,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/service-packages").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/service-packages/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/freelancer/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/{id:[0-9]+}").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/freelancer/**").hasRole("FREELANCER")
                 .requestMatchers("/api/paket/**").hasRole("UMKM")
@@ -54,7 +56,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
