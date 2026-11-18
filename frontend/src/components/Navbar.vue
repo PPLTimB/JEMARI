@@ -1,31 +1,55 @@
 <template>
   <header class="navbar">
     <div class="nav-container">
+      <!-- Brand Logo -->
       <div class="brand-section">
-        <router-link to="/request-saya" class="brand-logo">
+        <router-link to="/" class="brand-logo">
           <span class="logo-text">JEMARI</span>
         </router-link>
         <span class="brand-tagline">Jembatan Ekonomi Mandiri Rakyat Indonesia</span>
       </div>
 
+      <!-- Combined Navigation Links (Biru Style) -->
       <nav class="nav-links">
-        <router-link to="/request-saya" class="nav-item" active-class="active">
-          Request Saya
-        </router-link>
-        <router-link to="/request/buat" class="nav-item nav-btn-create" active-class="active">
-          + Buat Request
-        </router-link>
-        <router-link to="/portfolio" class="nav-item" active-class="active">
-          Portofolio
-        </router-link>
+        <a href="/#cara-kerja" @click="handleScroll('cara-kerja')" class="nav-item">Cara Kerja</a>
+        <a href="/#peran" @click="handleScroll('peran')" class="nav-item">Peran</a>
+        <a href="/#katalog" @click="handleScroll('katalog')" class="nav-item">Katalog</a>
+        <router-link to="/freelancer/packages" class="nav-item" active-class="active">Kelola Jasa</router-link>
+        <router-link to="/request-saya" class="nav-item" active-class="active">Request Saya</router-link>
+        <router-link to="/portfolio" class="nav-item" active-class="active">Portofolio</router-link>
       </nav>
 
-      <div class="user-badge">
-        <span class="role-pill">Peran: UMKM</span>
+      <!-- Action Buttons & Badge -->
+      <div class="nav-actions">
+        <router-link to="/request/buat" class="nav-btn-create">
+          + Buat Request
+        </router-link>
+        <router-link to="/register" class="nav-btn-register">
+          Daftar
+        </router-link>
+        <div class="user-badge">
+          <span class="role-pill">Peran: UMKM</span>
+        </div>
       </div>
     </div>
   </header>
 </template>
+
+<script setup>
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const handleScroll = (id) => {
+  if (route.path === '/') {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    router.push({ path: '/', hash: `#${id}` })
+  }
+}
+</script>
 
 <style scoped>
 .navbar {
@@ -38,7 +62,7 @@
 }
 
 .nav-container {
-  max-width: 1080px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 12px 20px;
   display: flex;
@@ -73,7 +97,7 @@
   display: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .brand-tagline {
     display: inline;
   }
@@ -82,17 +106,18 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .nav-item {
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: #4b5563;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .nav-item:hover {
@@ -106,13 +131,42 @@
   font-weight: 600;
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .nav-btn-create {
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
   background-color: #2563eb;
-  color: #ffffff !important;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
 .nav-btn-create:hover {
-  background-color: #1d4ed8 !important;
+  background-color: #1d4ed8;
+}
+
+.nav-btn-register {
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+  background-color: #eff6ff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-btn-register:hover {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
 }
 
 .user-badge {

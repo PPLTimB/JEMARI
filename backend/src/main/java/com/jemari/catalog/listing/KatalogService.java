@@ -9,7 +9,7 @@ import com.jemari.catalog.listing.dto.PaketJasaItemResponse;
 import com.jemari.common.dto.ApiResponse;
 import com.jemari.common.dto.ErrorDetail;
 import com.jemari.common.exception.AppException;
-import com.jemari.user.FreelancerProfile;
+import com.jemari.profile.FreelancerProfile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

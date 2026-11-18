@@ -194,27 +194,7 @@ onMounted(() => {
       </div>
     </transition>
 
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-      <div class="container nav-inner">
-        <a href="#" class="brand-logo">
-          <span class="brand-badge">🤝</span>
-          <span>JEMARI</span>
-        </a>
-
-        <nav class="nav-links">
-          <a href="#cara-kerja" @click.prevent="scrollToSection('cara-kerja')">Cara Kerja</a>
-          <a href="#peran" @click.prevent="scrollToSection('peran')">Peran</a>
-          <a href="#katalog" @click.prevent="scrollToSection('katalog')">Katalog</a>
-          <router-link to="/freelancer/service-packages">Kelola Jasa</router-link>
-        </nav>
-
-        <div class="nav-actions">
-          <a href="#masuk" class="link-login" @click.prevent="handleDummyClick('Masuk')">Masuk</a>
-          <router-link to="/register" class="btn-amber nav-register-btn">Daftar</router-link>
-        </div>
-      </div>
-    </header>
+   
 
     <!-- Hero Section dengan Gradasi Emerald dari Referensi Baru -->
     <section class="hero-emerald">

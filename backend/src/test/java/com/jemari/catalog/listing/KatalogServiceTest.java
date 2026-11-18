@@ -7,7 +7,7 @@ import com.jemari.catalog.listing.dto.KatalogPagedResponse;
 import com.jemari.catalog.listing.dto.PaketJasaItemResponse;
 import com.jemari.common.dto.ApiResponse;
 import com.jemari.common.exception.AppException;
-import com.jemari.user.FreelancerProfile;
+import com.jemari.profile.FreelancerProfile;
 import com.jemari.user.Role;
 import com.jemari.user.User;
 import org.junit.jupiter.api.BeforeEach;

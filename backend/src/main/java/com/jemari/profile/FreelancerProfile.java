@@ -57,6 +57,11 @@ public class FreelancerProfile {
 
     public FreelancerProfile() {
     }
+    
+    public FreelancerProfile(User user, String fullName) {
+        this.user = user;
+        this.fullName = fullName;
+    }
 
     @PrePersist
     protected void onCreate() {

@@ -1,12 +1,12 @@
 package com.jemari.catalog.listing;
 
 import com.jemari.catalog.category.ServiceCategory;
-import com.jemari.user.FreelancerProfile;
+import com.jemari.profile.FreelancerProfile;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "CatalogServicePackage")
 @Table(name = "service_packages")
 public class ServicePackage {
 

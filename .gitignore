@@ -22,3 +22,7 @@ Thumbs.db
 
 # Continue Extension / Local AI Memory
 .continue/
+
+# Testing & Python Cache
+testingJEMARI.py
+__pycache__/
