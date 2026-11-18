@@ -41,3 +41,5 @@ CREATE TABLE IF NOT EXISTS freelancer_experiences (
 -- Index pendukung query profil publik (pengalaman terbaru lebih dulu)
 CREATE INDEX idx_freelancer_experiences_profile_start
     ON freelancer_experiences(freelancer_profile_id, start_date DESC);
+
+-- Penyesuaian kecil untuk memastikan perbandingan PR ke develop
