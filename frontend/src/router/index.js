@@ -1,4 +1,3 @@
-
 import { createRouter, createWebHistory } from 'vue-router'
 import RevisionTermsView from '../views/RevisionTermsView.vue'
 
@@ -13,6 +12,16 @@ const router = createRouter({
       path: '/revision-terms',
       name: 'revision-terms',
       component: RevisionTermsView,
+    },
+    {
+      path: '/paket/:id',
+      name: 'paket-detail',
+      component: () => import('../views/PaketDetailView.vue'),
+    },
+    {
+      path: '/freelancer/paket/:id/varian',
+      name: 'kelola-varian',
+      component: () => import('../views/KelolaVarianView.vue'),
     },
   ],
 })
