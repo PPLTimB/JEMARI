@@ -41,10 +41,12 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/service-packages").permitAll()
-            .anyRequest().authenticated()
-)
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/service-packages/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/freelancer/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/{id:[0-9]+}").permitAll()
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
