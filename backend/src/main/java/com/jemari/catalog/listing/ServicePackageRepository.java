@@ -4,11 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("katalogServicePackageRepository")
 public interface ServicePackageRepository extends JpaRepository<ServicePackage, Long>, JpaSpecificationExecutor<ServicePackage> {
 
     boolean existsByCategoryId(Long categoryId);
 
     long countByCategoryId(Long categoryId);
 }
-

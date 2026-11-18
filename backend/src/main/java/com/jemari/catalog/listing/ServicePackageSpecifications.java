@@ -1,6 +1,6 @@
 package com.jemari.catalog.listing;
 
-import com.jemari.user.FreelancerProfile;
+import com.jemari.profile.FreelancerProfile;
 import com.jemari.user.User;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
