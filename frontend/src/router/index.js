@@ -7,6 +7,7 @@ import PortfolioCard from '../views/PortfolioCard.vue'
 import FreelancerProfileView from '../views/FreelancerProfileView.vue'
 import ServicePackagesView from '../views/freelancer/ServicePackagesView.vue'
 import RevisionTermsView from '../views/RevisionTermsView.vue'
+import PortfolioView from '../views/PortfolioView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
@@ -14,6 +15,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/portfolio',
       name: 'home',
       component: HomeView,
     },
@@ -45,6 +47,7 @@ const router = createRouter({
     {
       path: '/portfolio',
       name: 'portfolio',
+      component: PortfolioView,
       component: PortfolioCard,
     },
     {
