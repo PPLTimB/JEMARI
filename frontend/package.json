@@ -10,6 +10,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "axios": "^1.21.1",
     "vue": "^3.5.42",
     "vue-router": "^5.3.1"
   },
