@@ -2,23 +2,7 @@
   <div class="portfolio-page">
     <!-- Navbar Sesuai Mockup 4.5.7 (JEMARI | Profil | Cari Request | Paket Saya) -->
     <header class="app-header">
-      <div class="header-container">
-        <div class="brand-group">
-          <router-link to="/portfolio" class="brand-title">JEMARI</router-link>
-          <span class="brand-sub">Platform Kolaborasi UMKM &amp; Freelancer</span>
-        </div>
-
-        <nav class="nav-menu">
-          <router-link to="/portfolio" class="nav-link active">Profil &amp; Portofolio</router-link>
-          <router-link to="/freelancer/profile" class="nav-link">Pengaturan Profil</router-link>
-          <router-link to="/freelancer/packages" class="nav-link">Paket Saya</router-link>
-        </nav>
-
-        <div class="user-pill">
-          <span class="pill-dot"></span>
-          <span class="pill-label">Penyedia Jasa (Freelancer)</span>
-        </div>
-      </div>
+      
     </header>
 
     <main class="page-content">
