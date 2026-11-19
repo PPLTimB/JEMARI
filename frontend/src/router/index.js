@@ -51,11 +51,11 @@ const router = createRouter({
       component: RequestForm,
     },
     {
-      path: '/portfolio',
-      name: 'portfolio',
-      component: PortfolioView,
-      component: PortfolioCard,
-    },
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: PortfolioView,
+    meta: { requiresAuth: true, role: 'FREELANCER' }
+  },
     {
       path: '/freelancer/profile',
       name: 'freelancer-profile',
