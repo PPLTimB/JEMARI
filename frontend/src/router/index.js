@@ -10,6 +10,7 @@ import RevisionTermsView from '../views/RevisionTermsView.vue'
 import PortfolioView from '../views/PortfolioView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import LoginView from '../views/LoginView.vue'
+import UmkmProfileView from '../views/UmkmProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
