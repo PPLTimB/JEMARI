@@ -81,6 +81,12 @@ const router = createRouter({
       name: 'kelola-varian',
       component: () => import('../views/KelolaVarianView.vue'),
     },
+    {
+      path: '/umkm/profile',
+      name: 'umkm-profile',
+      component: UmkmProfileView,
+      meta: { requiresAuth: true, role: 'UMKM' },
+    },
   ],
 })
 

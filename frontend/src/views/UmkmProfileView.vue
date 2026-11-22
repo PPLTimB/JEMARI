@@ -145,9 +145,12 @@ async function handleSubmit() {
       : await umkmProfileService.createMyProfile(payload)
 
     const data = res.data
+    const isNewProfile = !profileExists.value
 
     profileExists.value = true
-    logoFileName.value = data.logoUrl || logoFileName.value
+    logoFileName.value = isNewProfile
+    ? (data.logoUrl || '')
+    : (data.logoUrl || logoFileName.value)
 
     profileMeta.id = data.id
     profileMeta.active = data.active

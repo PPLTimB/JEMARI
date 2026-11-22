@@ -1,7 +1,5 @@
 package com.jemari.umkm;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import com.jemari.user.User;
 import jakarta.persistence.*;
 
@@ -27,10 +25,6 @@ public class UmkmProfile {
 
     @Column(nullable = false, length = 100)
     private String category;
-
-    @JdbcTypeCode(SqlTypes.VARCHAR)
-    @Column(name = "business_scale", nullable = false, length = 20)
-    private BusinessScale businessScale;
 
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
@@ -59,8 +53,6 @@ public class UmkmProfile {
     public void setDescription(String description) { this.description = description; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
-    public BusinessScale getBusinessScale() { return businessScale; }
-    public void setBusinessScale(BusinessScale businessScale) { this.businessScale = businessScale; }
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public String getContactEmail() { return contactEmail; }
