@@ -257,5 +257,87 @@ export const requestService = {
     const store = getLocalStore().filter((item) => String(item.id) !== String(id))
     saveLocalStore(store)
     return true
+  },
+
+  // ========== REFERENCE PHOTOS (PBI-12) ==========
+
+  // GET /api/requests/{requestId}/reference-photos
+  async getReferencePhotos(requestId) {
+    try {
+      const res = await fetch(`${API_BASE}/${requestId}/reference-photos`, {
+        headers: { ...getAuthHeader() }
+      })
+      if (res.ok) {
+        const body = await res.json()
+        return body.data || []
+      }
+    } catch (err) {
+      console.warn('Gagal memuat foto referensi dari API:', err.message)
+    }
+    return []
+  },
+
+  // POST /api/requests/{requestId}/reference-photos
+  async uploadReferencePhoto(requestId, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch(`${API_BASE}/${requestId}/reference-photos`, {
+        method: 'POST',
+        headers: { ...getAuthHeader() },
+        body: formData
+      })
+      if (res.ok) {
+        const body = await res.json()
+        return body.data
+      }
+      const errBody = await res.json().catch(() => ({}))
+      throw new Error(errBody.message || 'Gagal mengunggah foto referensi')
+    } catch (err) {
+      if (err.message.includes('Gagal mengunggah')) throw err
+      throw new Error('Gagal mengunggah foto referensi: ' + err.message)
+    }
+  },
+
+  // PUT /api/requests/{requestId}/reference-photos/{photoId}
+  async replaceReferencePhoto(requestId, photoId, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch(`${API_BASE}/${requestId}/reference-photos/${photoId}`, {
+        method: 'PUT',
+        headers: { ...getAuthHeader() },
+        body: formData
+      })
+      if (res.ok) {
+        const body = await res.json()
+        return body.data
+      }
+      const errBody = await res.json().catch(() => ({}))
+      throw new Error(errBody.message || 'Gagal mengganti foto referensi')
+    } catch (err) {
+      if (err.message.includes('Gagal mengganti')) throw err
+      throw new Error('Gagal mengganti foto referensi: ' + err.message)
+    }
+  },
+
+  // DELETE /api/requests/{requestId}/reference-photos/{photoId}
+  async deleteReferencePhoto(requestId, photoId) {
+    try {
+      const res = await fetch(`${API_BASE}/${requestId}/reference-photos/${photoId}`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeader() }
+      })
+      if (res.ok) {
+        return true
+      }
+      const errBody = await res.json().catch(() => ({}))
+      throw new Error(errBody.message || 'Gagal menghapus foto referensi')
+    } catch (err) {
+      if (err.message.includes('Gagal menghapus')) throw err
+      throw new Error('Gagal menghapus foto referensi: ' + err.message)
+    }
   }
 }
