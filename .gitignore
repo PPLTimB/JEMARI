@@ -22,3 +22,9 @@ Thumbs.db
 
 # Continue Extension / Local AI Memory
 .continue/
+# Local uploaded test files
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Local Java classpath
+backend/classpath.txt

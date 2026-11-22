@@ -32,6 +32,9 @@ public class UmkmProfile {
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @Column(name = "logo_url", length = 255)
+    private String logoUrl;
+
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
@@ -54,6 +57,12 @@ public class UmkmProfile {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public String getContactEmail() { return contactEmail; }
     public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
+    public String getLogoUrl() {
+    return logoUrl;
+    }
+    public void setLogoUrl(String logoUrl) {
+    this.logoUrl = logoUrl;
+    }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
