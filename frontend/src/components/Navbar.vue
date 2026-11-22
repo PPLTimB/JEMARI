@@ -31,6 +31,14 @@
           Request Saya
         </router-link>
         <router-link
+          v-if="userRole === 'UMKM'"
+          to="/umkm/profile"
+          class="nav-item"
+          active-class="active"
+        >
+          Profil Usaha
+        </router-link>
+        <router-link
           v-if="userRole !== 'UMKM'"
           to="/portfolio"
           class="nav-item"
