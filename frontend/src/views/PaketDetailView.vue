@@ -128,7 +128,7 @@ onMounted(() => {
           </div>
 
           <div class="kotak-info">
-            <span class="kotak-label">Estimasi Pengerjaan</span>
+            <span class="kotak-label">Estimasi</span>
             <strong class="kotak-nilai">
               {{
                 formatRentangDurasi(
