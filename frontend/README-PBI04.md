@@ -97,8 +97,12 @@ localStorage.removeItem('jemari_auth_token');
 Sesuai rancangan proposal 4.5.12:
 - **Data Nyata (dari PBI-04):**
   - "Mulai dari Rp X" (diambil dari varian termurah).
-  - Estimasi pengerjaan (diambil dari rentang durasi varian aktif, mis. "2–5 hari").
-  - Daftar pilihan varian dan rincian biaya transparan (nama varian, deskripsi, harga, durasi).
+  - Kotak "Estimasi" berdampingan dengan "Revisi":
+    - Menampilkan satu angka ("3 hari") bila seluruh varian memiliki durasi yang sama.
+    - Menampilkan rentang durasi ("3–7 hari") dari durasi tercepat hingga terlama bila durasi varian berbeda.
+    - Menampilkan teks jelas `"Belum ada estimasi"` apabila paket belum memiliki varian aktif (area tidak kosong/strip).
+  - Daftar pilihan varian dan rincian biaya transparan (nama varian, deskripsi, harga, estimasi durasi per varian "N hari").
+  - Tabel Kelola Varian Freelancer menampilkan kolom "Estimasi Durasi" beserta modal input & validasi 1–365 hari.
 - **Placeholder Netral (karena modul PBI lain belum ada di branch ini):**
   - Galeri hasil kerja $\rightarrow$ area placeholder diagonal pattern sesuai mockup (milik PBI-02).
   - Judul paket $\rightarrow$ `Paket Jasa Digital #<id>` (milik PBI-02).

@@ -48,22 +48,35 @@ export function formatDurasi(days) {
 }
 
 /**
- * Memformat rentang durasi pengerjaan (tercepat dan terlama).
- * Contoh: (2, 5) -> "2–5 hari", (3, 3) -> "3 hari"
+ * Memformat rentang durasi pengerjaan (tercepat dan terlama) untuk PBI-04.
+ * Sesuai proposal UC-03 & Mockup 4.5.12:
+ * - Jika paket belum memiliki varian aktif / durasi kosong: "Belum ada estimasi"
+ * - Jika durasi sama (mis. 3 dan 3): "3 hari" (memakai formatDurasi)
+ * - Jika durasi berbeda (mis. 3 dan 7): "3–7 hari"
  *
- * @param {number|null|undefined} tercepat Durasi tercepat dalam hari
- * @param {number|null|undefined} terlama Durasi terlama dalam hari
+ * @param {number|string|null|undefined} tercepat Durasi tercepat dalam hari
+ * @param {number|string|null|undefined} terlama Durasi terlama dalam hari
  * @returns {string} String rentang estimasi
  */
 export function formatRentangDurasi(tercepat, terlama) {
-  if (!tercepat && !terlama) {
-    return '—'
+  const min =
+    tercepat !== null && tercepat !== undefined && tercepat !== '' ? Number(tercepat) : null
+  const max =
+    terlama !== null && terlama !== undefined && terlama !== '' ? Number(terlama) : null
+
+  const hasMin = min !== null && !Number.isNaN(min) && min > 0
+  const hasMax = max !== null && !Number.isNaN(max) && max > 0
+
+  if (!hasMin && !hasMax) {
+    return 'Belum ada estimasi'
   }
 
-  if (tercepat && terlama && tercepat !== terlama) {
-    return `${tercepat}–${terlama} hari`
+  if (hasMin && hasMax) {
+    if (min === max) {
+      return formatDurasi(min)
+    }
+    return `${min}–${max} hari`
   }
 
-  const single = tercepat || terlama
-  return formatDurasi(single)
+  return formatDurasi(hasMin ? min : max)
 }
