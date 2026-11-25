@@ -12,6 +12,7 @@ import RegisterView from '../views/RegisterView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import EditProfileView from '../views/EditProfileView.vue'
+import UmkmProfileView from '../views/UmkmProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -93,6 +94,12 @@ const router = createRouter({
       path: '/freelancer/paket/:id/varian',
       name: 'kelola-varian',
       component: () => import('../views/KelolaVarianView.vue'),
+    },
+    {
+      path: '/umkm/profile',
+      name: 'umkm-profile',
+      component: UmkmProfileView,
+      meta: { requiresAuth: true, role: 'UMKM' },
     },
   ],
 })

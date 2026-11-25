@@ -199,6 +199,8 @@ const fotoPreview = ref(null)
 const fileInputRef = ref(null)
 const errorMessage = ref('')
 const isSubmitting = ref(false)
+const isUploadingPhoto = ref(false)
+const referencePhotos = ref([])
 
 // Tanggal minimal = hari ini (format YYYY-MM-DD)
 const minDate = new Date().toISOString().split('T')[0]
@@ -215,6 +217,12 @@ onMounted(async () => {
         budgetMax: data.budgetMax || data.budget || data.harga,
         deadline: data.deadline ? data.deadline.substring(0, 10) : ''
       }
+      // Load reference photos
+      const photos = await requestService.getReferencePhotos(requestId.value)
+      referencePhotos.value = photos || []
+      if (photos && photos.length > 0) {
+        fotoPreview.value = photos[0].photoUrl
+      }
     } catch (err) {
       errorMessage.value = 'Gagal memuat data request: ' + err.message
     }
@@ -227,24 +235,63 @@ function triggerFileInput() {
   }
 }
 
-function handleFileUpload(e) {
+async function handleFileUpload(e) {
   const file = e.target.files[0]
   if (file) {
     if (file.size > 5 * 1024 * 1024) {
       alert('Ukuran file melebihi batas maksimal 5 MB!')
       return
     }
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      fotoPreview.value = event.target.result
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Format file harus JPG, PNG, atau WEBP!')
+      return
     }
-    reader.readAsDataURL(file)
+    
+    isUploadingPhoto.value = true
+    try {
+      // Show local preview immediately
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        fotoPreview.value = event.target.result
+      }
+      reader.readAsDataURL(file)
+
+      // Upload to API if editing existing request
+      if (isEditMode.value) {
+        const result = await requestService.uploadReferencePhoto(requestId.value, file)
+        if (result) {
+          referencePhotos.value.push(result)
+        }
+      }
+    } catch (err) {
+      errorMessage.value = err.message || 'Gagal mengunggah foto referensi'
+      fotoPreview.value = null
+    } finally {
+      isUploadingPhoto.value = false
+    }
   }
 }
 
-function hapusFoto() {
-  fotoPreview.value = null
-  if (fileInputRef.value) fileInputRef.value.value = ''
+async function hapusFoto() {
+  // If editing and photo exists in reference photos, delete from API
+  if (isEditMode.value && referencePhotos.value.length > 0) {
+    const photoToDelete = referencePhotos.value[0] // Assuming single photo for now
+    try {
+      await requestService.deleteReferencePhoto(requestId.value, photoToDelete.id)
+      referencePhotos.value = referencePhotos.value.filter(p => p.id !== photoToDelete.id)
+      if (referencePhotos.value.length > 0) {
+        fotoPreview.value = referencePhotos.value[0].photoUrl
+      } else {
+        fotoPreview.value = null
+      }
+    } catch (err) {
+      errorMessage.value = err.message || 'Gagal menghapus foto referensi'
+    }
+  } else {
+    // Just clear local preview
+    fotoPreview.value = null
+    if (fileInputRef.value) fileInputRef.value.value = ''
+  }
 }
 
 function formatRupiah(num) {

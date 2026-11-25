@@ -1,8 +1,10 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { freelancerProfileService } from '../services/freelancerProfileService'
+import { freelancerSkillService } from '../services/freelancerSkillService'
+import { freelancerExperienceService } from '../services/freelancerExperienceService'
 
-const activeMenu = ref('profil') // 'beranda' | 'request' | 'pekerjaan' | 'paket' | 'profil' | 'saldo' | 'ulasan' | 'pengaturan'
+const activeMenu = ref('profil') // 'beranda' | 'request' | 'pekerjaan' | 'paket' | 'profil' | 'keahlian' | 'saldo' | 'ulasan' | 'pengaturan'
 const searchQuery = ref('')
 
 const tokenInput = ref(localStorage.getItem('jemari_token') || '')
@@ -14,6 +16,21 @@ const profileExists = ref(false)
 const alertMessage = ref('')
 const alertType = ref('info') // 'success' | 'error' | 'info'
 const validationErrors = ref([])
+
+// Skills & Experiences State (PBI-11)
+const skills = ref([])
+const experiences = ref([])
+const isLoadingSkills = ref(false)
+const isLoadingExperiences = ref(false)
+const isSubmittingSkill = ref(false)
+const isSubmittingExperience = ref(false)
+const showSkillModal = ref(false)
+const showExperienceModal = ref(false)
+const editingSkill = ref(null)
+const editingExperience = ref(null)
+const skillForm = reactive({ skillName: '', skillLevel: '' })
+const experienceForm = reactive({ position: '', companyName: '', startDate: '', endDate: '', description: '' })
+const skillLevels = ['PEMULA', 'MENENGAH', 'MAHIR']
 
 const profileMeta = reactive({
   id: null,
@@ -97,6 +114,7 @@ const menuItems = [
   { key: 'pekerjaan', label: 'Pekerjaan Aktif', icon: '💼' },
   { key: 'paket', label: 'Paket Jasa Saya', icon: '🎨' },
   { key: 'profil', label: 'Profil & Portofolio', icon: '👤' },
+  { key: 'keahlian', label: 'Keahlian & Pengalaman', icon: '🛠️' },
   { key: 'saldo', label: 'Saldo & Pembayaran', icon: '💰' },
   { key: 'ulasan', label: 'Ulasan Saya', icon: '⭐' },
   { key: 'pengaturan', label: 'Pengaturan', icon: '⚙️' },
@@ -170,6 +188,10 @@ async function loadProfile() {
     profileMeta.active = data.active
     profileMeta.createdAt = data.createdAt
     profileMeta.updatedAt = data.updatedAt
+
+    // Load skills & experiences from profile response
+    if (data.skills) skills.value = data.skills
+    if (data.experiences) experiences.value = data.experiences
   } catch (err) {
     if (err.status === 404) {
       profileExists.value = false
@@ -182,6 +204,190 @@ async function loadProfile() {
   } finally {
     isLoading.value = false
   }
+}
+
+// ========== SKILLS CRUD (PBI-11) ==========
+async function loadSkills() {
+  isLoadingSkills.value = true
+  try {
+    const res = await freelancerSkillService.getMySkills()
+    skills.value = res.data || []
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal memuat keahlian.')
+  } finally {
+    isLoadingSkills.value = false
+  }
+}
+
+function openSkillModal(skill = null) {
+  editingSkill.value = skill
+  if (skill) {
+    skillForm.skillName = skill.skillName
+    skillForm.skillLevel = skill.skillLevel || ''
+  } else {
+    skillForm.skillName = ''
+    skillForm.skillLevel = ''
+  }
+  showSkillModal.value = true
+}
+
+function closeSkillModal() {
+  showSkillModal.value = false
+  editingSkill.value = null
+  skillForm.skillName = ''
+  skillForm.skillLevel = ''
+}
+
+async function handleSkillSubmit() {
+  if (!skillForm.skillName.trim()) {
+    showAlert('error', 'Nama keahlian wajib diisi.')
+    return
+  }
+  isSubmittingSkill.value = true
+  try {
+    if (editingSkill.value) {
+      await freelancerSkillService.updateSkill(editingSkill.value.id, {
+        skillName: skillForm.skillName.trim(),
+        skillLevel: skillForm.skillLevel || null
+      })
+      showAlert('success', 'Keahlian berhasil diperbarui.')
+    } else {
+      await freelancerSkillService.createSkill({
+        skillName: skillForm.skillName.trim(),
+        skillLevel: skillForm.skillLevel || null
+      })
+      showAlert('success', 'Keahlian berhasil ditambahkan.')
+    }
+    closeSkillModal()
+    await loadSkills()
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal menyimpan keahlian.')
+  } finally {
+    isSubmittingSkill.value = false
+  }
+}
+
+async function handleSkillDelete(skill) {
+  const confirmed = window.confirm(`Hapus keahlian "${skill.skillName}"?`)
+  if (!confirmed) return
+  try {
+    await freelancerSkillService.deleteSkill(skill.id)
+    showAlert('success', 'Keahlian berhasil dihapus.')
+    await loadSkills()
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal menghapus keahlian.')
+  }
+}
+
+// ========== EXPERIENCES CRUD (PBI-11) ==========
+async function loadExperiences() {
+  isLoadingExperiences.value = true
+  try {
+    const res = await freelancerExperienceService.getMyExperiences()
+    experiences.value = res.data || []
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal memuat pengalaman kerja.')
+  } finally {
+    isLoadingExperiences.value = false
+  }
+}
+
+function openExperienceModal(exp = null) {
+  editingExperience.value = exp
+  if (exp) {
+    experienceForm.position = exp.position
+    experienceForm.companyName = exp.companyName
+    experienceForm.startDate = exp.startDate || ''
+    experienceForm.endDate = exp.endDate || ''
+    experienceForm.description = exp.description || ''
+  } else {
+    experienceForm.position = ''
+    experienceForm.companyName = ''
+    experienceForm.startDate = ''
+    experienceForm.endDate = ''
+    experienceForm.description = ''
+  }
+  showExperienceModal.value = true
+}
+
+function closeExperienceModal() {
+  showExperienceModal.value = false
+  editingExperience.value = null
+  experienceForm.position = ''
+  experienceForm.companyName = ''
+  experienceForm.startDate = ''
+  experienceForm.endDate = ''
+  experienceForm.description = ''
+}
+
+async function handleExperienceSubmit() {
+  if (!experienceForm.position.trim() || !experienceForm.companyName.trim() || !experienceForm.startDate) {
+    showAlert('error', 'Posisi, nama perusahaan, dan tanggal mulai wajib diisi.')
+    return
+  }
+  if (experienceForm.endDate && experienceForm.endDate < experienceForm.startDate) {
+    showAlert('error', 'Tanggal selesai tidak boleh sebelum tanggal mulai.')
+    return
+  }
+  isSubmittingExperience.value = true
+  try {
+    const payload = {
+      position: experienceForm.position.trim(),
+      companyName: experienceForm.companyName.trim(),
+      startDate: experienceForm.startDate,
+      endDate: experienceForm.endDate || null,
+      description: experienceForm.description.trim() || null
+    }
+    if (editingExperience.value) {
+      await freelancerExperienceService.updateExperience(editingExperience.value.id, payload)
+      showAlert('success', 'Pengalaman kerja berhasil diperbarui.')
+    } else {
+      await freelancerExperienceService.createExperience(payload)
+      showAlert('success', 'Pengalaman kerja berhasil ditambahkan.')
+    }
+    closeExperienceModal()
+    await loadExperiences()
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal menyimpan pengalaman kerja.')
+  } finally {
+    isSubmittingExperience.value = false
+  }
+}
+
+async function handleExperienceDelete(exp) {
+  const confirmed = window.confirm(`Hapus pengalaman kerja "${exp.position} di ${exp.companyName}"?`)
+  if (!confirmed) return
+  try {
+    await freelancerExperienceService.deleteExperience(exp.id)
+    showAlert('success', 'Pengalaman kerja berhasil dihapus.')
+    await loadExperiences()
+  } catch (err) {
+    showAlert('error', err.message || 'Gagal menghapus pengalaman kerja.')
+  }
+}
+
+// Load skills & experiences when needed
+function loadSkillsAndExperiences() {
+  if (profileExists.value) {
+    loadSkills()
+    loadExperiences()
+  }
+}
+
+// Helper functions for Skills & Experiences UI
+function getSkillLevelClass(level) {
+  switch (level) {
+    case 'PEMULA': return 'level-pemula'
+    case 'MENENGAH': return 'level-menengah'
+    case 'MAHIR': return 'level-mahir'
+    default: return ''
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
 }
 
 async function handleSubmit() {
@@ -553,6 +759,86 @@ onMounted(() => {
           </div>
         </section>
 
+        <!-- TAB: KEahlian & PENGALAMAN (PBI-11) -->
+        <section v-else-if="activeMenu === 'keahlian'" class="section-view">
+          <div class="page-heading">
+            <h1 class="page-title">Keahlian & Pengalaman Kerja</h1>
+            <p class="page-subtitle">
+              Kelola keahlian dan riwayat pekerjaan yang tampil di profil publik untuk menarik UMKM.
+            </p>
+          </div>
+
+          <!-- KEahlian -->
+          <div class="panel-card">
+            <div class="section-header-row">
+              <h2 class="section-title">Keahlian</h2>
+              <button type="button" class="btn-amber-sm" @click="openSkillModal">+ Tambah Keahlian</button>
+            </div>
+
+            <div v-if="isLoadingSkills" class="state-box">Memuat keahlian...</div>
+
+            <div v-else-if="skills.length === 0" class="state-box empty">
+              <div class="empty-icon">🛠️</div>
+              <h3>Belum Ada Keahlian</h3>
+              <p>Tambahkan keahlian Anda agar UMKM mengetahui keahlian utama Anda.</p>
+              <button class="btn-amber-sm" @click="openSkillModal">+ Tambah Keahlian Pertama</button>
+            </div>
+
+            <div v-else class="list-stack">
+              <div v-for="skill in skills" :key="skill.id" class="list-row-card skill-row">
+                <div class="row-left">
+                  <div class="skill-info">
+                    <h3 class="row-title">{{ skill.skillName }}</h3>
+                    <p class="row-meta" v-if="skill.skillLevel">
+                      <span class="skill-level-badge" :class="getSkillLevelClass(skill.skillLevel)">{{ skill.skillLevel }}</span>
+                    </p>
+                  </div>
+                </div>
+                <div class="row-right">
+                  <button type="button" class="btn-outline-gray" @click="openSkillModal(skill)">✏️ Edit</button>
+                  <button type="button" class="btn-danger-soft" @click="handleSkillDelete(skill)">Hapus</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PENGALAMAN KERJA -->
+          <div class="panel-card" style="margin-top: 1.5rem;">
+            <div class="section-header-row">
+              <h2 class="section-title">Pengalaman Kerja</h2>
+              <button type="button" class="btn-amber-sm" @click="openExperienceModal">+ Tambah Pengalaman</button>
+            </div>
+
+            <div v-if="isLoadingExperiences" class="state-box">Memuat pengalaman kerja...</div>
+
+            <div v-else-if="experiences.length === 0" class="state-box empty">
+              <div class="empty-icon">💼</div>
+              <h3>Belum Ada Pengalaman Kerja</h3>
+              <p>Tambahkan riwayat pekerjaan Anda untuk meningkatkan kepercayaan UMKM.</p>
+              <button class="btn-amber-sm" @click="openExperienceModal">+ Tambah Pengalaman Pertama</button>
+            </div>
+
+            <div v-else class="list-stack">
+              <div v-for="exp in experiences" :key="exp.id" class="list-row-card experience-row">
+                <div class="row-left">
+                  <div class="experience-info">
+                    <h3 class="row-title">{{ exp.position }}</h3>
+                    <p class="row-meta">{{ exp.companyName }}</p>
+                    <p class="row-meta exp-date">
+                      {{ formatDate(exp.startDate) }} &#8211; {{ exp.endDate ? formatDate(exp.endDate) : 'Sekarang' }}
+                    </p>
+                    <p class="row-meta exp-desc" v-if="exp.description">{{ exp.description }}</p>
+                  </div>
+                </div>
+                <div class="row-right">
+                  <button type="button" class="btn-outline-gray" @click="openExperienceModal(exp)">✏️ Edit</button>
+                  <button type="button" class="btn-danger-soft" @click="handleExperienceDelete(exp)">Hapus</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- TAB 2: BERANDA -->
         <section v-else-if="activeMenu === 'beranda'" class="section-view">
           <div class="kpi-grid">
@@ -800,6 +1086,132 @@ onMounted(() => {
       </main>
     </div>
   </div>
+
+  <!-- Skill Modal (PBI-11) -->
+  <Teleport to="body">
+    <div v-if="showSkillModal" class="modal-overlay" @click.self="closeSkillModal">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>{{ editingSkill ? 'Edit Keahlian' : 'Tambah Keahlian' }}</h3>
+          <button type="button" class="modal-close" @click="closeSkillModal" aria-label="Tutup">✕</button>
+        </div>
+        <form @submit.prevent="handleSkillSubmit" class="modal-form">
+          <div class="form-group">
+            <label for="skillName" class="field-label">Nama Keahlian <span class="req">*</span></label>
+            <input
+              id="skillName"
+              v-model="skillForm.skillName"
+              type="text"
+              maxlength="100"
+              required
+              class="form-control"
+              placeholder="Contoh: Desain Logo, React, Fotografi Produk"
+              autofocus
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="skillLevel" class="field-label">Level Keahlian</label>
+            <select id="skillLevel" v-model="skillForm.skillLevel" class="form-control">
+              <option value="">-- Pilih Level (Opsional) --</option>
+              <option v-for="level in skillLevels" :key="level" :value="level">{{ level }}</option>
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-outline-gray" @click="closeSkillModal">Batal</button>
+            <button type="submit" class="btn-amber" :disabled="isSubmittingSkill">
+              {{ isSubmittingSkill ? 'Menyimpan...' : (editingSkill ? 'Simpan Perubahan' : 'Tambah Keahlian') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Experience Modal (PBI-11) -->
+  <Teleport to="body">
+    <div v-if="showExperienceModal" class="modal-overlay" @click.self="closeExperienceModal">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>{{ editingExperience ? 'Edit Pengalaman Kerja' : 'Tambah Pengalaman Kerja' }}</h3>
+          <button type="button" class="modal-close" @click="closeExperienceModal" aria-label="Tutup">✕</button>
+        </div>
+        <form @submit.prevent="handleExperienceSubmit" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="position" class="field-label">Posisi / Jabatan <span class="req">*</span></label>
+              <input
+                id="position"
+                v-model="experienceForm.position"
+                type="text"
+                maxlength="150"
+                required
+                class="form-control"
+                placeholder="Contoh: Senior UI/UX Designer"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="companyName" class="field-label">Nama Perusahaan <span class="req">*</span></label>
+              <input
+                id="companyName"
+                v-model="experienceForm.companyName"
+                type="text"
+                maxlength="150"
+                required
+                class="form-control"
+                placeholder="Contoh: PT. Digital Kreatif Indonesia"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startDate" class="field-label">Tanggal Mulai <span class="req">*</span></label>
+              <input
+                id="startDate"
+                v-model="experienceForm.startDate"
+                type="date"
+                required
+                class="form-control"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="endDate" class="field-label">Tanggal Selesai</label>
+              <input
+                id="endDate"
+                v-model="experienceForm.endDate"
+                type="date"
+                class="form-control"
+              />
+              <p class="field-hint">Kosongkan jika masih bekerja di sini</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description" class="field-label">Deskripsi Pekerjaan</label>
+            <textarea
+              id="description"
+              v-model="experienceForm.description"
+              rows="3"
+              maxlength="1000"
+              class="form-control textarea-control"
+              placeholder="Tulis tanggung jawab, proyek, dan pencapaian Anda..."
+            ></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-outline-gray" @click="closeExperienceModal">Batal</button>
+            <button type="submit" class="btn-amber" :disabled="isSubmittingExperience">
+              {{ isSubmittingExperience ? 'Menyimpan...' : (editingExperience ? 'Simpan Perubahan' : 'Tambah Pengalaman') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -1696,5 +2108,249 @@ onMounted(() => {
   margin: 0;
   font-size: 0.9rem;
   color: #374151;
+}
+
+/* Skills & Experiences (PBI-11) */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.btn-amber-sm {
+  background-color: #f59e0b;
+  color: #111827;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-amber-sm:hover {
+  background-color: #d97706;
+}
+
+.skill-row .skill-info,
+.experience-row .experience-info {
+  min-width: 0;
+}
+
+.skill-level-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.skill-level-badge.level-pemula {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.skill-level-badge.level-menengah {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.skill-level-badge.level-mahir {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.exp-date {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.exp-desc {
+  font-size: 0.82rem;
+  color: #4b5563;
+  margin-top: 0.25rem !important;
+  line-height: 1.4;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.modal-close {
+  background: #f3f4f6;
+  border: none;
+  color: #4b5563;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s;
+}
+
+.modal-close:hover {
+  background-color: #e5e7eb;
+}
+
+.modal-form {
+  padding: 1.5rem;
+}
+
+.modal-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .modal-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.modal-form .field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.4rem;
+}
+
+.modal-form .req {
+  color: #dc2626;
+}
+
+.modal-form .form-control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background-color: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.modal-form .form-control:focus {
+  outline: none;
+  border-color: #166534;
+  box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+}
+
+.modal-form .textarea-control {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.modal-form .field-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.modal-footer .btn-outline-gray {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.85rem;
+}
+
+.modal-footer .btn-amber {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.85rem;
+}
+
+/* List row card adjustments for skills/experiences */
+.list-row-card.skill-row,
+.list-row-card.experience-row {
+  padding: 1rem 1.25rem;
+}
+
+.list-row-card .row-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-row-card .row-right {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.list-row-card .row-right button {
+  white-space: nowrap;
 }
 </style>
