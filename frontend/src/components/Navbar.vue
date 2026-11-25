@@ -30,6 +30,25 @@
         >
           Request Saya
         </router-link>
+
+        <router-link
+          v-if="userRole === 'UMKM'"
+          to="/profile"
+          class="nav-item"
+          active-class="active"
+        >
+          Profil Akun
+        </router-link>
+
+        <!-- Profil Usaha UMKM - PBI 09 -->
+        <router-link
+          v-if="userRole === 'UMKM'"
+          to="/umkm/profile"
+          class="nav-item"
+          active-class="active"
+        >
+          Profil Usaha
+        </router-link>
         <router-link
           v-if="userRole === 'UMKM'"
           to="/umkm/profile"

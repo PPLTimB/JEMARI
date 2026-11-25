@@ -4,12 +4,14 @@ import RequestListView from '../views/RequestListView.vue'
 import RequestForm from '../views/RequestForm.vue'
 import RequestDetail from '../views/RequestDetail.vue'
 import PortfolioCard from '../views/PortfolioCard.vue'
+import PortfolioView from '../views/PortfolioView.vue'
 import FreelancerProfileView from '../views/FreelancerProfileView.vue'
 import ServicePackagesView from '../views/freelancer/ServicePackagesView.vue'
 import RevisionTermsView from '../views/RevisionTermsView.vue'
-import PortfolioView from '../views/PortfolioView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import LoginView from '../views/LoginView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import EditProfileView from '../views/EditProfileView.vue'
 import UmkmProfileView from '../views/UmkmProfileView.vue'
 
 const router = createRouter({
@@ -26,9 +28,9 @@ const router = createRouter({
       component: RegisterView,
     },
     {
-    path: '/login',
-    name: 'login',
-    component: LoginView
+      path: '/login',
+      name: 'login',
+      component: LoginView,
     },
     {
       path: '/request-saya',
@@ -51,11 +53,11 @@ const router = createRouter({
       component: RequestForm,
     },
     {
-    path: '/portfolio',
-    name: 'Portfolio',
-    component: PortfolioView,
-    meta: { requiresAuth: true, role: 'FREELANCER' }
-  },
+      path: '/portfolio',
+      name: 'Portfolio',
+      component: PortfolioView,
+      meta: { requiresAuth: true, role: 'FREELANCER' },
+    },
     {
       path: '/freelancer/profile',
       name: 'freelancer-profile',
@@ -70,6 +72,18 @@ const router = createRouter({
       path: '/revision-terms',
       name: 'revision-terms',
       component: RevisionTermsView,
+    },
+    {
+      path: '/profile',
+      name: 'account-profile',
+      component: ProfileView,
+      meta: { requiresAuth: true, role: 'UMKM' },
+    },
+    {
+      path: '/profile/edit',
+      name: 'account-profile-edit',
+      component: EditProfileView,
+      meta: { requiresAuth: true, role: 'UMKM' },
     },
     {
       path: '/paket/:id',

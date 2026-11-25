@@ -1,31 +1,32 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const router = useRouter();
+const router = useRouter()
 
 // Tab Role: 'UMKM' atau 'FREELANCER'
-const activeRole = ref('UMKM');
-const isSubmitting = ref(false);
-const errorMessage = ref('');
-const successMessage = ref('');
+const activeRole = ref('UMKM')
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
 
-// Form State
+// Form State Terpadu
 const form = ref({
-  name: '',          // Nama Usaha (UMKM) atau Nama Lengkap (Freelancer)
+  name: '',            // Nama Usaha (UMKM) atau Nama Lengkap (Freelancer)
   email: '',
   password: '',
   whatsapp: '',
-  businessScale: '', // Khusus UMKM
-  primaryCategory: '' // Khusus Freelancer
-});
+  category: '',        // Kategori Usaha (Khusus UMKM - dari JRI-23)
+  businessScale: '',   // Skala Usaha (Khusus UMKM)
+  primaryCategory: ''  // Kategori Jasa Utama (Khusus Freelancer)
+})
 
 const businessScales = [
   { value: 'MIKRO', label: 'Mikro — omzet s.d. Rp 2 miliar/tahun' },
   { value: 'KECIL', label: 'Kecil — s.d. Rp 15 miliar/tahun' },
   { value: 'MENENGAH', label: 'Menengah — di atas Rp 15 miliar/tahun' }
-];
+]
 
 const freelancerCategories = [
   'Desain Grafis',
@@ -36,50 +37,74 @@ const freelancerCategories = [
   'Video Editing',
   'Laporan Keuangan',
   'Lainnya'
-];
+]
 
 const switchRole = (role) => {
-  activeRole.value = role;
-  errorMessage.value = '';
-  successMessage.value = '';
-};
+  activeRole.value = role
+  errorMessage.value = ''
+  successMessage.value = ''
+}
 
 const handleRegister = async () => {
-  isSubmitting.value = true;
-  errorMessage.value = '';
-  successMessage.value = '';
+  errorMessage.value = ''
+  successMessage.value = ''
 
+  if (form.value.password.length < 8) {
+    errorMessage.value = 'Kata sandi minimal 8 karakter.'
+    return
+  }
+
+  isSubmitting.value = true
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+  const phoneNumber = form.value.whatsapp
+    ? `+62${form.value.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`
+    : ''
+
+  // Mengirimkan properti kompatibel untuk DTO backend (UMKM & Freelancer)
   const payload = {
-    name: form.value.name,
-    email: form.value.email,
+    name: form.value.name.trim(),
+    businessName: activeRole.value === 'UMKM' ? form.value.name.trim() : null,
+    email: form.value.email.trim(),
+    contactEmail: form.value.email.trim(),
     password: form.value.password,
     role: activeRole.value,
-    whatsapp: form.value.whatsapp ? `+62${form.value.whatsapp.replace(/^0+/, '')}` : '',
+    whatsapp: phoneNumber,
+    phoneNumber,
+    category: activeRole.value === 'UMKM' ? form.value.category.trim() : null,
     businessScale: activeRole.value === 'UMKM' ? form.value.businessScale : null,
     primaryCategory: activeRole.value === 'FREELANCER' ? form.value.primaryCategory : null
-  };
+  }
 
   try {
-    const res = await axios.post('http://localhost:8080/api/auth/register', payload);
+    const res = await axios.post(`${apiBase}/api/auth/register`, payload)
+
     if (res.data?.accessToken || res.data?.token) {
-      localStorage.setItem('token', res.data.accessToken || res.data.token);
+      localStorage.setItem('token', res.data.accessToken || res.data.token)
+      localStorage.setItem('userRole', activeRole.value)
+      localStorage.setItem('role', activeRole.value)
     }
-    successMessage.value = 'Pendaftaran berhasil! Mengarahkan halaman...';
+
+    successMessage.value =
+      res.data?.message || 'Pendaftaran berhasil! Mengarahkan halaman...'
+
     setTimeout(() => {
-      if (activeRole.value === 'FREELANCER') {
-        router.push('/freelancer/service-packages');
+      if (res.data?.accessToken || res.data?.token) {
+        router.push(activeRole.value === 'FREELANCER' ? '/freelancer/packages' : '/')
       } else {
-        router.push('/');
+        router.push('/login')
       }
-    }, 1000);
+    }, 1200)
   } catch (err) {
+    console.error('Register Error:', err)
     errorMessage.value =
       err.response?.data?.message ||
-      'Gagal melakukan pendaftaran. Periksa kembali data atau pastikan server backend berjalan.';
+      err.response?.data?.error ||
+      'Gagal melakukan pendaftaran. Periksa kembali data atau pastikan server backend berjalan.'
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 </script>
 
 <template>
@@ -144,7 +169,7 @@ const handleRegister = async () => {
             <input
               v-model="form.name"
               type="text"
-              :placeholder="activeRole === 'UMKM' ? 'Kebab Nutrisix' : 'Ahmad Rizki'"
+              :placeholder="activeRole === 'UMKM' ? 'Contoh: Kebab Nutrisix' : 'Contoh: Ahmad Rizki'"
               required
             />
           </div>
@@ -155,9 +180,9 @@ const handleRegister = async () => {
             <div class="input-with-icon">
               <span class="input-icon">✉️</span>
               <input
-                v-model="form.email"
+                v-model.trim="form.email"
                 type="email"
-                placeholder="nama@usaha.id"
+                :placeholder="activeRole === 'UMKM' ? 'nama@usaha.id' : 'nama@email.com'"
                 required
               />
             </div>
@@ -171,8 +196,8 @@ const handleRegister = async () => {
               <input
                 v-model="form.password"
                 type="password"
-                minlength="6"
-                placeholder="Minimal 6 karakter"
+                minlength="8"
+                placeholder="Minimal 8 karakter"
                 required
               />
             </div>
@@ -192,16 +217,28 @@ const handleRegister = async () => {
             </div>
           </div>
 
-          <!-- Field Kondisional: Skala Usaha (UMKM) -->
-          <div v-if="activeRole === 'UMKM'" class="form-group">
-            <label>Skala Usaha</label>
-            <select v-model="form.businessScale" required>
-              <option value="" disabled>Pilih skala usaha</option>
-              <option v-for="scale in businessScales" :key="scale.value" :value="scale.value">
-                {{ scale.label }}
-              </option>
-            </select>
-          </div>
+          <!-- Field Kondisional: Kategori & Skala Usaha (UMKM) -->
+          <template v-if="activeRole === 'UMKM'">
+            <div class="form-group">
+              <label>Kategori Usaha</label>
+              <input
+                v-model.trim="form.category"
+                type="text"
+                placeholder="Contoh: Kuliner, Fashion, Kerajinan"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Skala Usaha</label>
+              <select v-model="form.businessScale" required>
+                <option value="" disabled>Pilih skala usaha</option>
+                <option v-for="scale in businessScales" :key="scale.value" :value="scale.value">
+                  {{ scale.label }}
+                </option>
+              </select>
+            </div>
+          </template>
 
           <!-- Field Kondisional: Kategori Jasa Utama (Freelancer) -->
           <div v-else class="form-group">
@@ -466,7 +503,7 @@ select:focus {
   transition: background-color 0.15s;
 }
 
-.btn-submit-amber:hover {
+.btn-submit-amber:hover:not(:disabled) {
   background-color: #d97706;
 }
 
@@ -517,6 +554,7 @@ select:focus {
   .register-split-page {
     grid-template-columns: 1fr;
   }
+
   .brand-panel {
     display: none;
   }

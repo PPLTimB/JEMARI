@@ -1,7 +1,7 @@
 package com.jemari.catalog.listing;
 
 import com.jemari.catalog.listing.dto.KatalogPagedResponse;
-import com.jemari.common.config.SecurityConfig;
+import com.jemari.common.security.SecurityConfig;
 import com.jemari.common.dto.ApiResponse;
 import com.jemari.common.security.JwtAuthenticationFilter;
 import com.jemari.common.security.JwtTokenProvider;
