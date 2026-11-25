@@ -1,6 +1,7 @@
 package com.jemari.profile.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class FreelancerProfileResponse {
 
@@ -15,6 +16,8 @@ public class FreelancerProfileResponse {
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<FreelancerSkillResponse> skills;
+    private List<FreelancerExperienceResponse> experiences;
 
     public FreelancerProfileResponse() {
     }
@@ -105,5 +108,21 @@ public class FreelancerProfileResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<FreelancerSkillResponse> getSkills() {
+        return skills;
+    }
+
+    public void setSkills(List<FreelancerSkillResponse> skills) {
+        this.skills = skills;
+    }
+
+    public List<FreelancerExperienceResponse> getExperiences() {
+        return experiences;
+    }
+
+    public void setExperiences(List<FreelancerExperienceResponse> experiences) {
+        this.experiences = experiences;
     }
 }

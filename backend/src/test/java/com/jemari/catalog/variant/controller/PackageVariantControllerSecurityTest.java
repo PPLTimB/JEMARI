@@ -8,7 +8,7 @@ import com.jemari.catalog.variant.dto.UpdateVariantRequest;
 import com.jemari.catalog.variant.dto.VariantItemResponse;
 import com.jemari.catalog.variant.dto.VariantResponse;
 import com.jemari.catalog.variant.service.ServicePackageVariantService;
-import com.jemari.common.config.SecurityConfig;
+import com.jemari.common.security.SecurityConfig;
 import com.jemari.common.exception.GlobalExceptionHandler;
 import com.jemari.common.security.JwtAuthenticationFilter;
 import com.jemari.common.security.JwtTokenProvider;

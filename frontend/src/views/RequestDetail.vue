@@ -87,6 +87,17 @@
           </div>
         </div>
 
+        <!-- Foto Referensi (PBI-12) -->
+        <div class="section-block" v-if="referencePhotos.length > 0">
+          <h3 class="section-title">Foto Referensi Produk:</h3>
+          <div class="reference-photos-grid">
+            <div v-for="photo in referencePhotos" :key="photo.id" class="reference-photo-item">
+              <img :src="photo.photoUrl" :alt="photo.originalName || 'Foto Referensi'" class="reference-photo-img" />
+              <p class="reference-photo-name">{{ photo.originalName }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Pelamar Section (Mockup 4.5.6 Preview) -->
         <div class="section-block applicant-section">
           <h3 class="section-title">
@@ -129,6 +140,10 @@ const request = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
+// Reference Photos (PBI-12)
+const referencePhotos = ref([])
+const isLoadingPhotos = ref(false)
+
 // Dummy Pelamar sesuai Mockup 4.5.6 (Daftar Pelamar)
 const pelamarList = ref([
   { id: 1, nama: 'Rina D.', tawaranHarga: 350000, durasi: '3 hari' },
@@ -140,6 +155,9 @@ onMounted(async () => {
   isLoading.value = true
   try {
     request.value = await requestService.getRequestById(requestId)
+    // Load reference photos
+    const photos = await requestService.getReferencePhotos(requestId)
+    referencePhotos.value = photos || []
   } catch (err) {
     errorMessage.value = err.message
   } finally {
@@ -541,6 +559,43 @@ function alertPilih(nama) {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Reference Photos (PBI-12) */
+.reference-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.reference-photo-item {
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.reference-photo-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.reference-photo-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background-color: #e5e7eb;
+}
+
+.reference-photo-name {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 

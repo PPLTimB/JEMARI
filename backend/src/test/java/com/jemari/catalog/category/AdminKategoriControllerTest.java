@@ -3,7 +3,7 @@ package com.jemari.catalog.category;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jemari.catalog.category.dto.CreateKategoriRequest;
 import com.jemari.catalog.category.dto.KategoriResponse;
-import com.jemari.common.config.SecurityConfig;
+import com.jemari.common.security.SecurityConfig;
 import com.jemari.common.security.JwtAuthenticationFilter;
 import com.jemari.common.security.JwtTokenProvider;
 import com.jemari.user.CustomUserDetailsService;
