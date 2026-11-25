@@ -1,7 +1,4 @@
-
-package com.jemari.common.config;
-
-import com.jemari.common.security.JwtAuthenticationFilter;
+package com.jemari.common.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,35 +39,21 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-
-                // Endpoint registrasi dan login boleh diakses tanpa JWT
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/auth/register",
-                    "/api/auth/login"
-                ).permitAll()
-
-                // Endpoint dokumentasi API
-                .requestMatchers(
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**"
-                ).permitAll()
-
-                // Endpoint akun wajib menggunakan JWT
-                .requestMatchers(
-                    "/api/auth/me"
-                ).authenticated()
-
-                // Request OPTIONS untuk CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // Endpoint lainnya wajib menggunakan autentikasi
+                .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/service-packages/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/freelancer/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/portfolios/{id:[0-9]+}").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/freelancer/**").hasRole("FREELANCER")
+                .requestMatchers("/api/paket/**").hasRole("UMKM")
+                .requestMatchers("/api/katalog/**").hasRole("UMKM")
+                .requestMatchers(HttpMethod.GET, "/api/kategori/**").authenticated()
+                .requestMatchers("/api/auth/me", "/api/umkm/**").authenticated()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -79,14 +62,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(
-            List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        );
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
 
-        UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

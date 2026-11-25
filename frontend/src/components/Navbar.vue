@@ -30,7 +30,7 @@
         >
           Request Saya
         </router-link>
-        <!-- Profil Akun UMKM - PBI 10 -->
+
         <router-link
           v-if="userRole === 'UMKM'"
           to="/profile"

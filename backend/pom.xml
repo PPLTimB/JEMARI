@@ -55,6 +55,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Lombok (WAJIB UNTUK @Getter, @Setter, @Builder) -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Developer Tools -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

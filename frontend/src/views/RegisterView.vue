@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -6,34 +5,27 @@ import axios from 'axios'
 
 const router = useRouter()
 
+// Tab Role: 'UMKM' atau 'FREELANCER'
 const activeRole = ref('UMKM')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-// Form UMKM
-const umkmForm = ref({
-  businessName: '',
+// Form State Terpadu
+const form = ref({
+  name: '',            // Nama Usaha (UMKM) atau Nama Lengkap (Freelancer)
   email: '',
   password: '',
   whatsapp: '',
-  category: '',
-  businessScale: ''
-})
-
-// Form Freelancer
-const freelancerForm = ref({
-  name: '',
-  email: '',
-  password: '',
-  whatsapp: '',
-  primaryCategory: ''
+  category: '',        // Kategori Usaha (Khusus UMKM - dari JRI-23)
+  businessScale: '',   // Skala Usaha (Khusus UMKM)
+  primaryCategory: ''  // Kategori Jasa Utama (Khusus Freelancer)
 })
 
 const businessScales = [
   { value: 'MIKRO', label: 'Mikro — omzet s.d. Rp 2 miliar/tahun' },
   { value: 'KECIL', label: 'Kecil — s.d. Rp 15 miliar/tahun' },
-  { value: 'MENENGAH', label: 'Menengah — di atas Rp 15 miliar/tahun' },
+  { value: 'MENENGAH', label: 'Menengah — di atas Rp 15 miliar/tahun' }
 ]
 
 const freelancerCategories = [
@@ -57,62 +49,58 @@ const handleRegister = async () => {
   errorMessage.value = ''
   successMessage.value = ''
 
-  // Endpoint backend yang tersedia saat ini hanya registrasi UMKM
-  if (activeRole.value === 'FREELANCER') {
-    errorMessage.value =
-      'Registrasi Freelancer belum tersedia pada endpoint backend saat ini.'
-    return
-  }
-
-  const form = umkmForm.value
-
-  if (form.password.length < 8) {
+  if (form.value.password.length < 8) {
     errorMessage.value = 'Kata sandi minimal 8 karakter.'
     return
   }
 
   isSubmitting.value = true
 
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+  const phoneNumber = form.value.whatsapp
+    ? `+62${form.value.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`
+    : ''
+
+  // Mengirimkan properti kompatibel untuk DTO backend (UMKM & Freelancer)
+  const payload = {
+    name: form.value.name.trim(),
+    businessName: activeRole.value === 'UMKM' ? form.value.name.trim() : null,
+    email: form.value.email.trim(),
+    contactEmail: form.value.email.trim(),
+    password: form.value.password,
+    role: activeRole.value,
+    whatsapp: phoneNumber,
+    phoneNumber,
+    category: activeRole.value === 'UMKM' ? form.value.category.trim() : null,
+    businessScale: activeRole.value === 'UMKM' ? form.value.businessScale : null,
+    primaryCategory: activeRole.value === 'FREELANCER' ? form.value.primaryCategory : null
+  }
+
   try {
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+    const res = await axios.post(`${apiBase}/api/auth/register`, payload)
 
-    const phoneNumber = form.whatsapp
-      ? `+62${form.whatsapp.replace(/\D/g, '').replace(/^0+/, '')}`
-      : ''
-
-    const payload = {
-      email: form.email.trim(),
-      password: form.password,
-      businessName: form.businessName.trim(),
-      category: form.category.trim(),
-      businessScale: form.businessScale,
-      phoneNumber,
-      contactEmail: form.email.trim()
+    if (res.data?.accessToken || res.data?.token) {
+      localStorage.setItem('token', res.data.accessToken || res.data.token)
+      localStorage.setItem('userRole', activeRole.value)
+      localStorage.setItem('role', activeRole.value)
     }
 
-    const response = await axios.post(
-      `${apiBase}/api/auth/register`,
-      payload
-    )
-
     successMessage.value =
-      response.data?.message ||
-      'Registrasi UMKM berhasil! Silakan login.'
+      res.data?.message || 'Pendaftaran berhasil! Mengarahkan halaman...'
 
     setTimeout(() => {
-      router.push('/login')
-    }, 1500)
-
+      if (res.data?.accessToken || res.data?.token) {
+        router.push(activeRole.value === 'FREELANCER' ? '/freelancer/packages' : '/')
+      } else {
+        router.push('/login')
+      }
+    }, 1200)
   } catch (err) {
     console.error('Register Error:', err)
-    console.error('Response:', err.response?.data)
-
     errorMessage.value =
-    err.response?.data?.message ||
-    err.response?.data?.error ||
-    err.message ||
-    'Registrasi gagal. Periksa backend.'
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      'Gagal melakukan pendaftaran. Periksa kembali data atau pastikan server backend berjalan.'
   } finally {
     isSubmitting.value = false
   }
@@ -121,7 +109,7 @@ const handleRegister = async () => {
 
 <template>
   <div class="register-split-page">
-    <!-- Kolom Kiri: Branding -->
+    <!-- Kolom Kiri: Branding & Testimoni -->
     <aside class="brand-panel">
       <div class="brand-content">
         <h1 class="brand-title">JEMARI</h1>
@@ -144,9 +132,7 @@ const handleRegister = async () => {
     <!-- Kolom Kanan: Form Pendaftaran -->
     <main class="form-panel">
       <div class="form-wrapper">
-        <router-link to="/" class="back-link">
-          ← Kembali ke Beranda
-        </router-link>
+        <router-link to="/" class="back-link">← Kembali ke Beranda</router-link>
 
         <div class="form-header">
           <h2>Daftar</h2>
@@ -162,7 +148,6 @@ const handleRegister = async () => {
           >
             UMKM / Homemade
           </button>
-
           <button
             type="button"
             :class="['tab-btn', { active: activeRole === 'FREELANCER' }]"
@@ -172,177 +157,107 @@ const handleRegister = async () => {
           </button>
         </div>
 
-        <!-- Alert -->
-        <div v-if="errorMessage" class="alert alert-error">
-          {{ errorMessage }}
-        </div>
+        <!-- Alert Error / Success -->
+        <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
-        <div v-if="successMessage" class="alert alert-success">
-          {{ successMessage }}
-        </div>
-
-        <!-- Form Pendaftaran -->
+        <!-- Form Register -->
         <form @submit.prevent="handleRegister" class="register-form">
+          <!-- Nama Usaha / Nama Lengkap -->
+          <div class="form-group">
+            <label>{{ activeRole === 'UMKM' ? 'Nama Usaha' : 'Nama Lengkap' }}</label>
+            <input
+              v-model="form.name"
+              type="text"
+              :placeholder="activeRole === 'UMKM' ? 'Contoh: Kebab Nutrisix' : 'Contoh: Ahmad Rizki'"
+              required
+            />
+          </div>
 
-          <!-- Form UMKM -->
-          <template v-if="activeRole === 'UMKM'">
-            <div class="form-group">
-              <label>Nama Usaha</label>
+          <!-- Email -->
+          <div class="form-group">
+            <label>Email</label>
+            <div class="input-with-icon">
+              <span class="input-icon">✉️</span>
               <input
-                v-model="umkmForm.businessName"
-                type="text"
-                placeholder="Contoh: Kebab Nutrisix"
+                v-model.trim="form.email"
+                type="email"
+                :placeholder="activeRole === 'UMKM' ? 'nama@usaha.id' : 'nama@email.com'"
                 required
               />
             </div>
+          </div>
 
-            <div class="form-group">
-              <label>Email</label>
-              <div class="input-with-icon">
-                <span class="input-icon">✉️</span>
-                <input
-                  v-model.trim="umkmForm.email"
-                  type="email"
-                  placeholder="nama@usaha.id"
-                  required
-                />
-              </div>
+          <!-- Password -->
+          <div class="form-group">
+            <label>Kata Sandi</label>
+            <div class="input-with-icon">
+              <span class="input-icon">🔒</span>
+              <input
+                v-model="form.password"
+                type="password"
+                minlength="8"
+                placeholder="Minimal 8 karakter"
+                required
+              />
             </div>
+          </div>
 
-            <div class="form-group">
-              <label>Kata Sandi</label>
-              <div class="input-with-icon">
-                <span class="input-icon">🔒</span>
-                <input
-                  v-model="umkmForm.password"
-                  type="password"
-                  minlength="8"
-                  placeholder="Minimal 8 karakter"
-                  required
-                />
-              </div>
+          <!-- Nomor WhatsApp -->
+          <div class="form-group">
+            <label>Nomor WhatsApp</label>
+            <div class="wa-input-group">
+              <span class="wa-prefix">+62</span>
+              <input
+                v-model="form.whatsapp"
+                type="tel"
+                placeholder="812-3456-7890"
+                required
+              />
             </div>
+          </div>
 
-            <div class="form-group">
-              <label>Nomor WhatsApp</label>
-              <div class="wa-input-group">
-                <span class="wa-prefix">+62</span>
-                <input
-                  v-model="umkmForm.whatsapp"
-                  type="tel"
-                  placeholder="812-3456-7890"
-                  required
-                />
-              </div>
-            </div>
-
+          <!-- Field Kondisional: Kategori & Skala Usaha (UMKM) -->
+          <template v-if="activeRole === 'UMKM'">
             <div class="form-group">
               <label>Kategori Usaha</label>
               <input
-                v-model.trim="umkmForm.category"
+                v-model.trim="form.category"
                 type="text"
-                placeholder="Contoh: Kuliner"
+                placeholder="Contoh: Kuliner, Fashion, Kerajinan"
                 required
               />
             </div>
 
             <div class="form-group">
               <label>Skala Usaha</label>
-              <select v-model="umkmForm.businessScale" required>
+              <select v-model="form.businessScale" required>
                 <option value="" disabled>Pilih skala usaha</option>
-                <option
-                  v-for="scale in businessScales"
-                  :key="scale.value"
-                  :value="scale.value"
-                >
+                <option v-for="scale in businessScales" :key="scale.value" :value="scale.value">
                   {{ scale.label }}
                 </option>
               </select>
             </div>
           </template>
 
-          <!-- Form Freelancer -->
-          <template v-else>
-            <div class="form-group">
-              <label>Nama Lengkap</label>
-              <input
-                v-model="freelancerForm.name"
-                type="text"
-                placeholder="Contoh: Ahmad Rizki"
-                required
-              />
-            </div>
+          <!-- Field Kondisional: Kategori Jasa Utama (Freelancer) -->
+          <div v-else class="form-group">
+            <label>Kategori Jasa Utama</label>
+            <select v-model="form.primaryCategory" required>
+              <option value="" disabled>Pilih kategori</option>
+              <option v-for="cat in freelancerCategories" :key="cat" :value="cat">
+                {{ cat }}
+              </option>
+            </select>
+          </div>
 
-            <div class="form-group">
-              <label>Email</label>
-              <div class="input-with-icon">
-                <span class="input-icon">✉️</span>
-                <input
-                  v-model.trim="freelancerForm.email"
-                  type="email"
-                  placeholder="nama@email.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Kata Sandi</label>
-              <div class="input-with-icon">
-                <span class="input-icon">🔒</span>
-                <input
-                  v-model="freelancerForm.password"
-                  type="password"
-                  minlength="8"
-                  placeholder="Minimal 8 karakter"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Nomor WhatsApp</label>
-              <div class="wa-input-group">
-                <span class="wa-prefix">+62</span>
-                <input
-                  v-model="freelancerForm.whatsapp"
-                  type="tel"
-                  placeholder="812-3456-7890"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Kategori Jasa Utama</label>
-              <select
-                v-model="freelancerForm.primaryCategory"
-                required
-              >
-                <option value="" disabled>Pilih kategori</option>
-                <option
-                  v-for="cat in freelancerCategories"
-                  :key="cat"
-                  :value="cat"
-                >
-                  {{ cat }}
-                </option>
-              </select>
-            </div>
-          </template>
-
-          <button
-            type="submit"
-            class="btn-submit-amber"
-            :disabled="isSubmitting"
-          >
+          <button type="submit" class="btn-submit-amber" :disabled="isSubmitting">
             {{ isSubmitting ? 'Memproses...' : 'Daftar Sekarang' }}
           </button>
         </form>
 
         <p class="login-redirect">
-          Sudah punya akun?
-          <router-link to="/login">Masuk di sini</router-link>
+          Sudah punya akun? <router-link to="/login">Masuk di sini</router-link>
         </p>
       </div>
     </main>
@@ -358,6 +273,7 @@ const handleRegister = async () => {
   color: #111827;
 }
 
+/* Panel Kiri (Emerald) */
 .brand-panel {
   background: linear-gradient(160deg, #065f46 0%, #1B6B46 60%, #15803d 100%);
   color: #ffffff;
@@ -417,6 +333,7 @@ const handleRegister = async () => {
   color: #6b7280;
 }
 
+/* Panel Kanan (Form) */
 .form-panel {
   background: #ffffff;
   display: flex;
@@ -456,6 +373,7 @@ const handleRegister = async () => {
   margin: 0 0 24px;
 }
 
+/* Role Tabs */
 .role-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -485,6 +403,7 @@ const handleRegister = async () => {
   border-bottom-color: #1B6B46;
 }
 
+/* Form Elements */
 .register-form {
   display: flex;
   flex-direction: column;
@@ -610,6 +529,7 @@ select:focus {
   text-decoration: underline;
 }
 
+/* Alerts */
 .alert {
   padding: 10px 14px;
   border-radius: 8px;
@@ -629,6 +549,7 @@ select:focus {
   border: 1px solid #a7f3d0;
 }
 
+/* Responsive */
 @media (max-width: 860px) {
   .register-split-page {
     grid-template-columns: 1fr;
